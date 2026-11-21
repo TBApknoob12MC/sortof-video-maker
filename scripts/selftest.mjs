@@ -248,9 +248,25 @@ for (const expression of expressions) {
 	const c = lowpoly.buildCharacter({ ...app.project.characters[0], expression });
 	ok(c.children.length > 0, `character builds (${expression})`);
 }
-for (const hairStyle of ['short', 'bob', 'long', 'spiky', 'bun', 'ponytail', 'mohawk', 'bald']) {
+for (const hairStyle of ['short', 'bob', 'long', 'spiky', 'bun', 'ponytail', 'mohawk', 'bald', 'wavy', 'afro', 'braids']) {
 	const c = lowpoly.buildCharacter({ ...app.project.characters[0], hairStyle });
 	ok(c.userData.rig?.skull, `hair style builds (${hairStyle})`);
+}
+for (const topStyle of ['tee', 'hoodie', 'jacket', 'dress', 'suit', 'overalls', 'coat']) {
+	const c = lowpoly.buildCharacter({ ...app.project.characters[0], topStyle });
+	ok(c.userData.rig?.body, `outfit builds (${topStyle})`);
+}
+for (const accessory of ['none', 'hat', 'cap', 'glasses', 'crown', 'headphones', 'beanie', 'catEars', 'scarf']) {
+	const c = lowpoly.buildCharacter({ ...app.project.characters[0], accessory });
+	ok(c.userData.rig?.skull, `accessory builds (${accessory})`);
+}
+{
+	const c = lowpoly.buildCharacter({ ...app.project.characters[0], eyeColor: '#2f6f8f' });
+	let found = false;
+	c.traverse((o) => {
+		if (o.isMesh && o.material?.color?.getHexString?.() === '2f6f8f') found = true;
+	});
+	ok(found, 'eye colour applied to the face');
 }
 for (const pose of ['idle', 'wave', 'point', 'talk', 'crossed', 'hips', 'sit', 'run']) {
 	const c = lowpoly.buildCharacter({ ...app.project.characters[0], pose });
@@ -277,7 +293,7 @@ ok(discard.parent === null, 'disposeObject detaches');
 
 /* ----------------------------- 2. panels -------------------------------- */
 section('Panel rendering');
-for (const tab of ['characters', 'scene', 'props', 'textures', 'objects', 'dialogue', 'camera']) {
+for (const tab of ['home', 'characters', 'scene', 'props', 'textures', 'objects', 'dialogue', 'camera', 'play']) {
 	app.tab = tab;
 	app.selection = app.project.characters[0].id;
 	renderPanel();
@@ -312,6 +328,21 @@ handleAction('set-expression', { dataset: { id: c2.id, value: 'angry' } });
 ok(c2.expression === 'angry', 'set expression action');
 handleAction('set-pose', { dataset: { id: c2.id, value: 'wave' } });
 ok(c2.pose === 'wave', 'set pose action');
+handleAction('char-style', { dataset: { id: c2.id, path: 'hairStyle', value: 'afro' } });
+ok(c2.hairStyle === 'afro', 'char-style sets hair style');
+handleAction('char-style', { dataset: { id: c2.id, path: 'topStyle', value: 'coat' } });
+ok(c2.topStyle === 'coat', 'char-style sets outfit');
+handleAction('char-color', { dataset: { id: c2.id, path: 'eyeColor', value: '#2f6f8f' } });
+ok(c2.eyeColor === '#2f6f8f', 'char-color sets eye colour');
+
+const envBefore = app.project.environment.time;
+handleAction('time-of-day', { dataset: { value: 'night' } });
+ok(app.project.environment.time === 'night' && app.project.environment.time !== envBefore, 'time of day applies');
+ok(app.project.environment.sun < 1, 'night light is dim');
+
+const kfBeforeMove = app.project.camera.keyframes.length;
+handleAction('cam-move', { dataset: { value: 'push' } });
+ok(app.project.camera.keyframes.length > kfBeforeMove, 'quick camera move adds keyframes');
 
 const propsBefore = app.project.props.length;
 addProp('tree');
@@ -413,8 +444,8 @@ const pressKey = (key) => document.dispatchEvent(new window.KeyboardEvent('keydo
 
 setTab('characters');
 renderPanel();
-const chip = document.querySelector('.chip[data-act="select-item"]');
-ok(!!chip, 'character chips render');
+const chip = document.querySelector('.cast[data-act="select-item"]');
+ok(!!chip, 'character cast cards render');
 clickEl(chip);
 ok(app.selection === chip.dataset.id, 'clicking a chip selects the character');
 

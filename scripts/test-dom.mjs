@@ -44,6 +44,8 @@ export function setupDom({ autoboot = false } = {}) {
 	globalThis.HTMLElement = window.HTMLElement;
 	globalThis.Event = window.Event;
 	globalThis.localStorage = window.localStorage;
+	globalThis.FileReader = window.FileReader;
+	globalThis.File = window.File;
 
 	window.HTMLCanvasElement.prototype.getContext = function () {
 		if (!this.__ctx) this.__ctx = fakeCtx();

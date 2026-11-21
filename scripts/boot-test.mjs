@@ -22,6 +22,8 @@ globalThis.confirm = window.confirm;
 window.URL.createObjectURL = () => 'blob:mock';
 window.URL.revokeObjectURL = () => {};
 window.HTMLAnchorElement.prototype.click = function () {};
+globalThis.FileReader = window.FileReader;
+globalThis.File = window.File;
 
 const fakeRenderer = {
 	domElement: canvas,
@@ -36,7 +38,7 @@ const fakeRenderer = {
 };
 
 const mod = await import('../src/app.js');
-const { app, boot, handleAction, renderPanel, setTab, selectItem, captureKeyframe, sampleCamera, startVN, advanceVN, setClean } = mod.__internals;
+const { app, boot, handleAction, renderPanel, setTab, selectItem, captureKeyframe, sampleCamera, startVN, advanceVN, setClean, startGame, exitGame, importTextureFile, applyTimeOfDay, addCameraMove } = mod.__internals;
 
 section('Full boot');
 try {
@@ -138,6 +140,112 @@ try {
 	ok(false, 'menu/file actions', err.stack);
 }
 
+section('POV game mode');
+try {
+	const aria = app.project.characters[0];
+	const beforeCam = app.studio.view();
+	startGame(aria.id);
+	ok(!!app.game, 'POV starts');
+	ok(document.body.classList.contains('game'), 'game body class applied');
+	ok(!document.querySelector('#gameHud').hidden, 'game HUD visible');
+	ok(!document.querySelector('#gamePad').hidden, 'gamepad visible');
+	ok(document.querySelector('#ghName').textContent === aria.name, 'HUD shows the actor name');
+	ok(!app.studio.objects.get(aria.id).visible, 'actor is hidden in first person');
+
+	const startPos = app.game.pos.clone();
+	app.game.setMove(0, -1);
+	for (let i = 0; i < 20; i++) app.game.update(0.05);
+	app.game.setMove(0, 0);
+	ok(app.game.pos.distanceTo(startPos) > 0.6, 'walking moves the player');
+
+	handleAction('game-view', { dataset: {} });
+	ok(app.game.thirdPerson, 'view toggles to third person');
+	ok(app.studio.objects.get(aria.id).visible, 'actor visible in third person');
+	handleAction('game-view', { dataset: {} });
+	ok(!app.game.thirdPerson, 'view toggles back to first person');
+
+	const beforeJump = app.game.jumpY;
+	app.game.jump();
+	app.game.update(0.08);
+	ok(app.game.jumpY > beforeJump, 'jump raises the player');
+
+	const rock = app.project.props.find((p) => p.name === 'Small Rock');
+	app.game.pos.set(rock.transform.p[0], 0, rock.transform.p[2] + 1.3);
+	const dx = rock.transform.p[0] - app.game.pos.x;
+	const dz = rock.transform.p[2] - app.game.pos.z;
+	app.game.yaw = Math.atan2(-dx, -dz);
+	app.game.update(0.016);
+	ok(app.game.hover?.prop?.id === rock.id, 'hover finds a nearby grabbable prop');
+	ok(document.querySelector('#gamePrompt').textContent.includes('Grab'), 'grab prompt shown');
+	handleAction('game-grab', { dataset: {} });
+	ok(app.game.holding?.prop?.id === rock.id, 'prop picked up');
+	app.game.update(0.016);
+	handleAction('game-grab', { dataset: {} });
+	ok(!app.game.holding, 'prop dropped again');
+	ok(rock.transform.p[1] === 0, 'dropped prop rests on the ground');
+
+	handleAction('game-pad', { dataset: {} });
+	ok(document.querySelector('#gamePad').hidden, 'gamepad can be hidden');
+	handleAction('game-pad', { dataset: {} });
+	ok(!document.querySelector('#gamePad').hidden, 'gamepad can be shown again');
+
+	handleAction('game-run', { dataset: {} });
+	ok(app.game.run, 'run button toggles running');
+	handleAction('game-run', { dataset: {} });
+
+	exitGame();
+	ok(!app.game, 'POV exits');
+	ok(!document.body.classList.contains('game'), 'game body class removed');
+	ok(app.studio.objects.get(aria.id).visible, 'actor visible after exit');
+	ok(!app.studio.locked, 'studio unlocked after exit');
+	ok(!document.querySelector('#gameHud').hidden === false, 'game HUD hidden after exit');
+	const afterCam = app.studio.view();
+	ok(Math.abs(afterCam.p[0] - beforeCam.p[0]) < 0.01 && Math.abs(afterCam.p[2] - beforeCam.p[2]) < 0.01, 'editor camera restored');
+} catch (err) {
+	ok(false, 'POV game mode', err.stack);
+}
+
+section('World, camera moves & imports');
+try {
+	applyTimeOfDay('night');
+	ok(app.project.environment.time === 'night' && app.project.environment.sun < 1, 'time of day applies');
+	const kfBefore = app.project.camera.keyframes.length;
+	addCameraMove('orbit');
+	ok(app.project.camera.keyframes.length > kfBefore, 'quick camera move adds keyframes');
+
+	const prop = app.project.props.at(-1);
+	selectItem(prop.id);
+	const texCount = app.project.textures.length;
+	const file = new window.File([new Uint8Array([137, 80, 78, 71, 13, 10, 26, 10])], 'imported-swatch.png', { type: 'image/png' });
+	importTextureFile(file);
+	await new Promise((r) => setTimeout(r, 60));
+	ok(app.project.textures.length === texCount + 1, 'texture import adds a texture');
+	ok(app.project.textures.at(-1).type === 'image' && app.project.textures.at(-1).dataUrl, 'imported texture has image data');
+	ok(prop.textureId === app.project.textures.at(-1).id, 'imported texture auto-applies to the selected prop');
+	ok(app.tab === 'textures', 'import switches to the Textures tab');
+
+	setTab('scene');
+	renderPanel();
+	const sunPad = document.querySelector('#sunPad');
+	ok(!!sunPad, 'sun compass renders');
+	Object.defineProperty(sunPad, 'getBoundingClientRect', { value: () => ({ left: 100, top: 100, width: 116, height: 116, right: 216, bottom: 216, x: 100, y: 100 }) });
+	const pointer = (type, el, x, y) => {
+		const ev = new window.Event(type, { bubbles: true, cancelable: true });
+		Object.defineProperty(ev, 'clientX', { value: x });
+		Object.defineProperty(ev, 'clientY', { value: y });
+		Object.defineProperty(ev, 'pointerId', { value: 11 });
+		el.dispatchEvent(ev);
+	};
+	pointer('pointerdown', sunPad, 158, 110);
+	pointer('pointermove', document, 190, 130);
+	pointer('pointerup', document, 190, 130);
+	ok(Number.isFinite(app.project.environment.sunAzimuth) && app.project.environment.sunAzimuth > 0, 'sun drag sets a real azimuth');
+	ok(Number.isFinite(app.project.environment.sunElevation) && app.project.environment.sunElevation > 0, 'sun drag sets a real elevation');
+	ok(app.project.environment.time === null, 'manual sun clears the time-of-day chip');
+} catch (err) {
+	ok(false, 'world & imports', err.stack);
+}
+
 section('More editor paths');
 try {
 	const charsBefore = app.project.characters.length;
@@ -194,12 +302,34 @@ try {
 	ok(false, 'more editor paths', err.stack);
 }
 
+section('Navigation');
+ok(document.querySelectorAll('#rail .tab').length === 9, 'nine tools in the rail');
+ok(!document.querySelector('#tabbar'), 'old flat tab bar is gone');
+ok(!!document.querySelector('#topbar [data-act="vn-play"]'), 'story button is in the top bar');
+ok(!!document.querySelector('#topbar [data-act="cam-play"]'), 'camera button is in the top bar');
+ok(!!document.querySelector('#topbar [data-act="game-open"]'), 'POV button is in the top bar');
+setTab('home');
+renderPanel();
+ok(!!document.querySelector('#panel .hero'), 'home screen renders the hero');
+const clickEl = (el) => el.dispatchEvent(new window.MouseEvent('click', { bubbles: true, cancelable: true }));
+clickEl(document.querySelector('#rail [data-tab="play"]'));
+ok(app.tab === 'play', 'rail switches to Play');
+clickEl(document.querySelector('#rail [data-tab="home"]'));
+ok(app.tab === 'home', 'rail returns Home');
+clickEl(document.querySelector('#topbar [data-act="vn-play"]'));
+ok(app.playingVN, 'top-bar Play story starts the VN');
+handleAction('vn-exit', { dataset: {} });
+ok(!app.playingVN, 'VN exits');
+
 section('Panels after boot');
 app.selection = app.project.characters[0].id;
-for (const tab of ['characters', 'scene', 'props', 'textures', 'objects', 'dialogue', 'camera']) {
+for (const tab of ['home', 'characters', 'scene', 'props', 'textures', 'objects', 'dialogue', 'camera', 'play']) {
 	app.tab = tab;
 	renderPanel();
 	ok(document.querySelector('#panel').innerHTML.length > 300, `panel renders after boot: ${tab}`);
+	const ids = [...document.querySelectorAll('#panel [id]')].map((el) => el.id);
+	ok(new Set(ids).size === ids.length, `panel ids are unique: ${tab}`);
+	ok(!document.querySelector('#panel button button'), `no nested buttons: ${tab}`);
 }
 const hudText = document.querySelector('#hud').innerHTML;
 ok(hudText.length > 50, 'HUD survives interactions');

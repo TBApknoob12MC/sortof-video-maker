@@ -4,7 +4,7 @@
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
 		<title>Low Poly Studio — Characters, Scenes &amp; Visual Novels</title>
-		<meta name="description" content="Make low poly 3D scenes, characters, props and visual-novel dialogue with an animated camera. Record clean video." />
+		<meta name="description" content="Make low poly 3D scenes, characters, props and visual-novel dialogue with an animated camera. Record clean video, or walk the set in first person." />
 		<meta name="theme-color" content="#0b0f18" />
 		<meta name="color-scheme" content="dark" />
 		<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230b0f18'/%3E%3Cpath d='M16 5 27 11.5v10L16 28 5 21.5v-10L16 5Z' fill='none' stroke='%23ffce6b' stroke-width='1.8'/%3E%3Cpath d='M16 5v13m0 0 11-6.5M16 18 5 11.5M16 18v10' fill='none' stroke='%234de0c0' stroke-width='1'/%3E%3C/svg%3E" />
@@ -13,7 +13,7 @@
 	<body>
 		<div id="app">
 			<header id="topbar">
-				<div class="brand" title="Low Poly Studio">
+				<button class="brand" data-act="tab" data-tab="home" title="Go to the home screen" aria-label="Home">
 					<svg viewBox="0 0 32 32" class="logo" aria-hidden="true">
 						<path d="M16 3 29 10.5v11L16 29 3 21.5v-11L16 3Z" fill="none" stroke="url(#g1)" stroke-width="1.6" />
 						<path d="M16 3v13m0 0 13-5.5M16 16 3 10.5M16 16v13" fill="none" stroke="url(#g1)" stroke-width="1.1" opacity=".7" />
@@ -25,22 +25,31 @@
 						</defs>
 					</svg>
 					<span class="wordmark">LOWPOLY<span>STUDIO</span></span>
-				</div>
+				</button>
 				<input id="projectName" class="proj-name" value="Untitled Scene" aria-label="Project name" maxlength="48" />
 				<span id="saveState" class="save-state">saved</span>
 				<div class="top-spacer"></div>
-				<button id="btnPlayVN" class="btn primary" data-act="vn-play" title="Play the visual novel (P)">
-					<span class="ico-txt">▶</span><span class="btn-label">Play VN</span>
-				</button>
-				<button class="btn" data-act="cam-play" title="Play camera sequence (includes keyframes)">
-					<span class="ico-txt">🎬</span><span class="btn-label">Camera</span>
-				</button>
-				<button class="btn accent" data-act="clean-toggle" title="Hide all UI for a clean screen recording (H)">
-					<span class="ico-txt">🎥</span><span class="btn-label">Clean UI</span>
+
+				<div class="play-group" role="group" aria-label="Play">
+					<button id="btnPlayVN" class="btn primary" data-act="vn-play" title="Play the visual novel (P)">
+						<span class="ico-txt">▶</span><span class="btn-label">Play story</span>
+					</button>
+					<button class="btn" data-act="cam-play" title="Play the camera sequence (C)">
+						<span class="ico-txt">🎬</span><span class="btn-label">Camera</span>
+					</button>
+					<button class="btn pov" data-act="game-open" title="Walk the scene in first person (G)">
+						<span class="ico-txt">🕹</span><span class="btn-label">POV</span>
+					</button>
+				</div>
+
+				<button class="btn" data-act="clean-toggle" title="Hide all UI for a clean screen recording (H)">
+					<span class="ico-txt">🎥</span><span class="btn-label">Clean</span>
 				</button>
 				<div class="menu-wrap">
 					<button class="btn icon" data-act="menu-toggle" title="Project menu">⋯</button>
 					<div id="menuPop" class="popover" hidden>
+						<button data-act="guide">🚀 Quick start guide</button>
+						<div class="pop-sep"></div>
 						<button data-act="new">🗋 New blank project</button>
 						<button data-act="new-demo">🌴 Load demo scene</button>
 						<button data-act="save">⬇ Save project (.json)</button>
@@ -48,6 +57,7 @@
 						<button data-act="snapshot">📸 Save screenshot (PNG)</button>
 						<button data-act="export-script">📝 Export dialogue (.txt)</button>
 						<div class="pop-sep"></div>
+						<button data-act="game-open">🕹 Play in POV</button>
 						<button data-act="help">❔ Help &amp; shortcuts</button>
 						<input type="file" id="loadFile" accept=".json,application/json" hidden />
 					</div>
@@ -55,14 +65,18 @@
 				<button class="btn icon" data-act="fullscreen" title="Toggle fullscreen">⛶</button>
 			</header>
 
-			<nav id="tabbar">
-				<button class="tab" data-act="tab" data-tab="characters"><span>🧑‍🎤</span>Characters</button>
-				<button class="tab" data-act="tab" data-tab="scene"><span>🌤</span>Scene</button>
-				<button class="tab" data-act="tab" data-tab="props"><span>📦</span>Props</button>
-				<button class="tab" data-act="tab" data-tab="textures"><span>🎨</span>Textures</button>
-				<button class="tab" data-act="tab" data-tab="objects"><span>🗂</span>Scene Edit</button>
-				<button class="tab" data-act="tab" data-tab="dialogue"><span>💬</span>Dialogue</button>
-				<button class="tab" data-act="tab" data-tab="camera"><span>🎥</span>Camera</button>
+			<nav id="rail" aria-label="Tools">
+				<button class="tab rail-btn" data-act="tab" data-tab="home" title="Home"><span>🏠</span><b>Home</b></button>
+				<button class="tab rail-btn" data-act="tab" data-tab="characters" title="Create actors"><span>🧑‍🎤</span><b>Actors</b></button>
+				<button class="tab rail-btn" data-act="tab" data-tab="scene" title="Build the world"><span>🌤</span><b>World</b></button>
+				<button class="tab rail-btn" data-act="tab" data-tab="props" title="Add props"><span>📦</span><b>Props</b></button>
+				<button class="tab rail-btn" data-act="tab" data-tab="textures" title="Materials & imports"><span>🎨</span><b>Textures</b></button>
+				<button class="tab rail-btn" data-act="tab" data-tab="objects" title="Arrange the scene"><span>🗂</span><b>Arrange</b></button>
+				<button class="tab rail-btn" data-act="tab" data-tab="dialogue" title="Visual-novel dialogue"><span>💬</span><b>Story</b></button>
+				<button class="tab rail-btn" data-act="tab" data-tab="camera" title="Camera movement & keyframes"><span>🎬</span><b>Camera</b></button>
+				<button class="tab rail-btn" data-act="tab" data-tab="play" title="POV & game mode"><span>🕹</span><b>Play</b></button>
+				<div class="rail-spacer"></div>
+				<button class="rail-btn rail-help" data-act="help" title="Help & shortcuts"><span>❔</span><b>Help</b></button>
 			</nav>
 
 			<main id="stage">
@@ -93,6 +107,39 @@
 							<div class="vn-name" id="vnName">Aria</div>
 							<div class="vn-text" id="vnText"></div>
 							<div class="vn-next" id="vnNext">▼</div>
+						</div>
+					</div>
+
+					<div id="gameHud" class="game-hud" hidden>
+						<div class="gh-top">
+							<span class="gh-name" id="ghName">Aria</span>
+							<span class="gh-tag" id="ghMode">POV</span>
+							<span class="gh-spacer"></span>
+							<button class="gh-btn" data-act="game-view" title="Toggle first / third person (F)">👁 <span id="ghView">1st</span></button>
+							<button class="gh-btn" data-act="game-pad" title="Toggle the on-screen gamepad">🎮 <span id="ghPad">Pad</span></button>
+							<button class="gh-btn gh-exit" data-act="game-exit" title="Leave POV (Esc)">✕ Exit</button>
+						</div>
+						<div class="crosshair" id="gameCross"></div>
+						<div class="gh-prompt" id="gamePrompt" hidden></div>
+						<div class="gh-hint">Stick / WASD to move · drag or mouse to look · E / 🤚 grab · Esc to exit</div>
+					</div>
+
+					<div id="gamePad" class="game-pad" hidden>
+						<div class="gp-stick" id="gpStick" aria-label="Move stick">
+							<div class="gp-thumb" id="gpThumb"></div>
+							<span>MOVE</span>
+						</div>
+						<div class="gp-right">
+							<div class="gp-look" id="gpLook" aria-label="Look pad">
+								<div class="gp-thumb" id="gpLookThumb"></div>
+								<span>LOOK</span>
+							</div>
+							<div class="gp-btns">
+								<button class="gp-btn" data-act="game-jump" title="Jump">⤒<small>Jump</small></button>
+								<button class="gp-btn" data-act="game-grab" id="gpGrab" title="Grab / drop (E)">🤚<small>Grab</small></button>
+								<button class="gp-btn" data-act="game-run" id="gpRun" title="Run">🏃<small>Run</small></button>
+								<button class="gp-btn" data-act="game-view" title="First / third person (F)">👁<small>View</small></button>
+							</div>
 						</div>
 					</div>
 
