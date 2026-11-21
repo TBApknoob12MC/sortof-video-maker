@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+		<title>Low Poly Studio — Characters, Scenes &amp; Visual Novels</title>
+		<meta name="description" content="Make low poly 3D scenes, characters, props and visual-novel dialogue with an animated camera. Record clean video." />
+		<meta name="theme-color" content="#0b0f18" />
+		<meta name="color-scheme" content="dark" />
+		<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230b0f18'/%3E%3Cpath d='M16 5 27 11.5v10L16 28 5 21.5v-10L16 5Z' fill='none' stroke='%23ffce6b' stroke-width='1.8'/%3E%3Cpath d='M16 5v13m0 0 11-6.5M16 18 5 11.5M16 18v10' fill='none' stroke='%234de0c0' stroke-width='1'/%3E%3C/svg%3E" />
+		<link rel="stylesheet" href="./css/app.css" />
+	</head>
+	<body>
+		<div id="app">
+			<header id="topbar">
+				<div class="brand" title="Low Poly Studio">
+					<svg viewBox="0 0 32 32" class="logo" aria-hidden="true">
+						<path d="M16 3 29 10.5v11L16 29 3 21.5v-11L16 3Z" fill="none" stroke="url(#g1)" stroke-width="1.6" />
+						<path d="M16 3v13m0 0 13-5.5M16 16 3 10.5M16 16v13" fill="none" stroke="url(#g1)" stroke-width="1.1" opacity=".7" />
+						<defs>
+							<linearGradient id="g1" x1="0" y1="0" x2="1" y2="1">
+								<stop offset="0" stop-color="#ffce6b" />
+								<stop offset="1" stop-color="#4de0c0" />
+							</linearGradient>
+						</defs>
+					</svg>
+					<span class="wordmark">LOWPOLY<span>STUDIO</span></span>
+				</div>
+				<input id="projectName" class="proj-name" value="Untitled Scene" aria-label="Project name" maxlength="48" />
+				<span id="saveState" class="save-state">saved</span>
+				<div class="top-spacer"></div>
+				<button id="btnPlayVN" class="btn primary" data-act="vn-play" title="Play the visual novel (P)">
+					<span class="ico-txt">▶</span><span class="btn-label">Play VN</span>
+				</button>
+				<button class="btn" data-act="cam-play" title="Play camera sequence (includes keyframes)">
+					<span class="ico-txt">🎬</span><span class="btn-label">Camera</span>
+				</button>
+				<button class="btn accent" data-act="clean-toggle" title="Hide all UI for a clean screen recording (H)">
+					<span class="ico-txt">🎥</span><span class="btn-label">Clean UI</span>
+				</button>
+				<div class="menu-wrap">
+					<button class="btn icon" data-act="menu-toggle" title="Project menu">⋯</button>
+					<div id="menuPop" class="popover" hidden>
+						<button data-act="new">🗋 New blank project</button>
+						<button data-act="new-demo">🌴 Load demo scene</button>
+						<button data-act="save">⬇ Save project (.json)</button>
+						<button data-act="load">⬆ Load project…</button>
+						<button data-act="snapshot">📸 Save screenshot (PNG)</button>
+						<button data-act="export-script">📝 Export dialogue (.txt)</button>
+						<div class="pop-sep"></div>
+						<button data-act="help">❔ Help &amp; shortcuts</button>
+						<input type="file" id="loadFile" accept=".json,application/json" hidden />
+					</div>
+				</div>
+				<button class="btn icon" data-act="fullscreen" title="Toggle fullscreen">⛶</button>
+			</header>
+
+			<nav id="tabbar">
+				<button class="tab" data-act="tab" data-tab="characters"><span>🧑‍🎤</span>Characters</button>
+				<button class="tab" data-act="tab" data-tab="scene"><span>🌤</span>Scene</button>
+				<button class="tab" data-act="tab" data-tab="props"><span>📦</span>Props</button>
+				<button class="tab" data-act="tab" data-tab="textures"><span>🎨</span>Textures</button>
+				<button class="tab" data-act="tab" data-tab="objects"><span>🗂</span>Scene Edit</button>
+				<button class="tab" data-act="tab" data-tab="dialogue"><span>💬</span>Dialogue</button>
+				<button class="tab" data-act="tab" data-tab="camera"><span>🎥</span>Camera</button>
+			</nav>
+
+			<main id="stage">
+				<div id="viewport">
+					<canvas id="c"></canvas>
+
+					<div id="hud" class="hud"></div>
+					<div id="guides" class="guides" aria-hidden="true">
+						<div class="guide-shade"></div>
+						<div class="guide-frame" id="guideFrame">
+							<div class="g-thirds g-v1"></div>
+							<div class="g-thirds g-v2"></div>
+							<div class="g-thirds g-h1"></div>
+							<div class="g-thirds g-h2"></div>
+							<span class="g-corner tl"></span><span class="g-corner tr"></span>
+							<span class="g-corner bl"></span><span class="g-corner br"></span>
+						</div>
+					</div>
+
+					<div id="vnOverlay" class="vn-overlay" hidden data-theme="sunset">
+						<div class="vn-top">
+							<span class="vn-progress" id="vnProgress"></span>
+							<span class="vn-spacer"></span>
+							<button class="vn-exit" data-act="vn-exit" title="Exit visual novel">✕ Exit</button>
+						</div>
+						<div class="vn-stage-hint">click / tap / space to continue</div>
+						<div class="vn-box">
+							<div class="vn-name" id="vnName">Aria</div>
+							<div class="vn-text" id="vnText"></div>
+							<div class="vn-next" id="vnNext">▼</div>
+						</div>
+					</div>
+
+					<div id="cleanHint" class="clean-hint">
+						<strong>Clean mode</strong><span>hold anywhere or press H to return · P plays the VN · C plays the camera</span>
+					</div>
+					<div id="toasts" class="toasts"></div>
+					<div id="errorBox" class="error-box" hidden></div>
+				</div>
+				<aside id="panel" class="panel"></aside>
+			</main>
+
+			<section id="timeline" class="timeline" hidden></section>
+		</div>
+
+		<div id="modalRoot" class="modal-root" hidden></div>
+
+		<script type="importmap">
+			{
+				"imports": {
+					"three": "./src/vendor/three.module.js"
+				}
+			}
+		</script>
+		<script type="module" src="./src/app.js"></script>
+	</body>
+</html>
