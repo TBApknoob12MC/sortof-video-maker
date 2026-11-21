@@ -348,6 +348,7 @@ function buildFace(skull, params) {
 	const expr = params.expression || 'neutral';
 	const skinMat = makeMaterial(params.skin || '#f0c39c', { rough: 0.72 });
 	const darkMat = makeMaterial('#262734', { rough: 0.5 });
+	const eyeMat = makeMaterial(params.eyeColor || '#2b2118', { rough: 0.42 });
 	const eyeWhite = makeMaterial('#ffffff', { rough: 0.35 });
 	const accent = makeMaterial(params.accentColor || '#f5a04b', { rough: 0.5 });
 	const eyeY = 0.02;
@@ -358,7 +359,7 @@ function buildFace(skull, params) {
 	for (const side of [-1, 1]) {
 		const eye = addMesh(face, SPH(whiteR, 6, 5), eyeWhite, side * eyeX, eyeY, 0.157);
 		eye.scale.set(1, eyeScaleY, 0.55);
-		const pupil = addMesh(face, SPH(whiteR * 0.52, 6, 5), darkMat, side * eyeX, eyeY - 0.002, 0.171);
+		const pupil = addMesh(face, SPH(whiteR * 0.52, 6, 5), eyeMat, side * eyeX, eyeY - 0.002, 0.171);
 		pupil.scale.set(1, eyeScaleY, 0.4);
 	}
 	// brows
@@ -439,6 +440,42 @@ function buildHair(skull, params) {
 			for (let i = 0; i < 5; i++) addMesh(group, CONE(0.055, 0.16, 4), mat, 0, 0.19 - i * 0.01, 0.13 - i * 0.07);
 			break;
 		}
+		case 'wavy': {
+			for (const side of [-1, 1]) {
+				addMesh(group, BOX(0.07, 0.3, 0.3), mat, side * 0.163, -0.05, -0.02);
+				for (let i = 0; i < 3; i++) {
+					const wave = addMesh(group, BOX(0.075, 0.09, 0.29), mat, side * (0.165 + i * 0.012), -0.16 - i * 0.07, -0.02);
+					wave.rotation.z = side * 0.14;
+				}
+			}
+			addMesh(group, BOX(0.3, 0.16, 0.09), mat, 0, 0.03, -0.17);
+			fringe(0.37, 0.15, 0.07, 0.06, 0.15);
+			break;
+		}
+		case 'afro': {
+			addMesh(group, SPH(0.25, 8, 6), mat, 0, 0.11, -0.01).scale.set(1.02, 0.92, 1.02);
+			for (const [x, y, z, r] of [
+				[-0.19, 0.16, 0.06, 0.13],
+				[0.19, 0.16, 0.06, 0.13],
+				[0, 0.29, -0.02, 0.14],
+				[-0.12, 0.22, -0.15, 0.12],
+				[0.12, 0.22, -0.15, 0.12],
+				[0, 0.16, 0.17, 0.12],
+			])
+				addMesh(group, SPH(r, 6, 5), mat, x, y, z);
+			break;
+		}
+		case 'braids': {
+			for (const side of [-1, 1]) {
+				addMesh(group, BOX(0.06, 0.26, 0.24), mat, side * 0.165, -0.08, -0.02);
+				for (let i = 0; i < 4; i++) {
+					const knot = addMesh(group, SPH(0.052 - i * 0.004, 5, 4), mat, side * (0.17 + i * 0.006), -0.23 - i * 0.11, -0.05);
+					knot.scale.set(1, 1.25, 1);
+				}
+			}
+			addMesh(group, BOX(0.26, 0.18, 0.08), mat, 0, -0.02, -0.17);
+			break;
+		}
 		case 'bald':
 			break;
 		default: {
@@ -492,6 +529,21 @@ function buildAccessory(skull, params) {
 		case 'beanie': {
 			addMesh(group, SPH(0.21, 8, 5), accent, 0, 0.1, 0).scale.set(1, 0.9, 1);
 			addMesh(group, CYL(0.215, 0.215, 0.06, 10), dark, 0, 0.12, 0);
+			break;
+		}
+		case 'catEars': {
+			for (const side of [-1, 1]) {
+				const ear = addMesh(group, CONE(0.062, 0.14, 4), accent, side * 0.115, 0.24, -0.01, [0, 0, -side * 0.18]);
+				ear.scale.set(1, 1, 0.55);
+				addMesh(group, CONE(0.028, 0.07, 4), makeMaterial('#ffb7c8', { rough: 0.7 }), side * 0.115, 0.255, 0.02, [0, 0, -side * 0.18]).scale.set(1, 1, 0.4);
+			}
+			break;
+		}
+		case 'scarf': {
+			const band = addMesh(group, new THREE.TorusGeometry(0.115, 0.038, 5, 10), accent, 0, -0.29, 0);
+			band.rotation.x = Math.PI / 2;
+			const tail = addMesh(group, BOX(0.12, 0.26, 0.05), accent, 0.07, -0.42, 0.09);
+			tail.rotation.z = 0.12;
 			break;
 		}
 		default:
@@ -623,6 +675,16 @@ export function buildCharacter(params) {
 	if (params.topStyle === 'suit') {
 		addMesh(body, BOX(0.08 * build, 0.4, 0.27 * build), accentMat, 0, 1.18, 0);
 		addMesh(body, BOX(0.13 * build, 0.13, 0.05 * build), accentMat, 0, 1.3, 0.14);
+	}
+	if (params.topStyle === 'overalls') {
+		addMesh(body, BOX(0.3 * build, 0.3, 0.27 * build), topMat, 0, 1.17, 0);
+		addMesh(body, BOX(0.22 * build, 0.2, 0.03), accentMat, 0, 1.2, 0.135);
+		for (const side of [-1, 1]) addMesh(body, BOX(0.04, 0.22, 0.03), accentMat, side * 0.1 * build, 1.32, 0.135);
+	}
+	if (params.topStyle === 'coat') {
+		addMesh(body, BOX(0.46 * build, 0.74, 0.29 * build), topMat, 0, 1.04, 0);
+		for (const side of [-1, 1]) addMesh(body, BOX(0.11 * build, 0.72, 0.31 * build), accentMat, side * 0.17 * build, 1.05, 0);
+		addMesh(body, BOX(0.2 * build, 0.1, 0.1 * build), accentMat, 0, 1.43, -0.03);
 	}
 	// neck
 	addMesh(body, CYL(0.062, 0.072, 0.11, 6), skinMat, 0, 1.44, 0);

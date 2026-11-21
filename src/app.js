@@ -29,7 +29,8 @@ import {
 	HAIR_COLORS,
 	CLOTH_COLORS,
 } from './state.js';
-import { textureThumb } from './lowpoly.js';
+import { textureThumb, characterHeight } from './lowpoly.js';
+import { GameMode } from './game.js';
 
 const D2R = THREE.MathUtils.degToRad;
 const R2D = THREE.MathUtils.radToDeg;
@@ -51,40 +52,68 @@ const EXPRESSIONS = [
 	['surprised', 'Surprised', '😲'],
 ];
 const POSES = [
-	['idle', 'Idle'],
-	['wave', 'Wave'],
-	['point', 'Point'],
-	['talk', 'Talk'],
-	['crossed', 'Crossed'],
-	['hips', 'Hands on hips'],
-	['sit', 'Sit'],
-	['run', 'Run'],
+	['idle', 'Idle', '🧍'],
+	['wave', 'Wave', '👋'],
+	['point', 'Point', '👉'],
+	['talk', 'Talk', '💬'],
+	['crossed', 'Crossed', '🙅'],
+	['hips', 'Hips', '🕺'],
+	['sit', 'Sit', '🪑'],
+	['run', 'Run', '🏃'],
 ];
 const HAIR_STYLES = [
-	['short', 'Short'],
-	['bob', 'Bob'],
-	['long', 'Long'],
-	['spiky', 'Spiky'],
-	['bun', 'Bun'],
-	['ponytail', 'Ponytail'],
-	['mohawk', 'Mohawk'],
-	['bald', 'Bald'],
+	['short', 'Short', '✂️'],
+	['bob', 'Bob', '💇'],
+	['long', 'Long', '💇‍♀️'],
+	['spiky', 'Spiky', '🦔'],
+	['bun', 'Bun', '🍡'],
+	['ponytail', 'Ponytail', '🎀'],
+	['mohawk', 'Mohawk', '🦅'],
+	['bald', 'Bald', '🥚'],
+	['wavy', 'Wavy', '🌊'],
+	['afro', 'Afro', '🌀'],
+	['braids', 'Braids', '🪢'],
 ];
 const TOP_STYLES = [
-	['tee', 'T-shirt'],
-	['hoodie', 'Hoodie'],
-	['jacket', 'Jacket'],
-	['dress', 'Dress'],
-	['suit', 'Suit'],
+	['tee', 'T-shirt', '👕'],
+	['hoodie', 'Hoodie', '🧥'],
+	['jacket', 'Jacket', '🥼'],
+	['dress', 'Dress', '👗'],
+	['suit', 'Suit', '🤵'],
+	['overalls', 'Overalls', '🛠'],
+	['coat', 'Coat', '🧥'],
 ];
 const ACCESSORIES = [
-	['none', 'None'],
-	['hat', 'Hat'],
-	['cap', 'Cap'],
-	['glasses', 'Glasses'],
-	['crown', 'Crown'],
-	['headphones', 'Headphones'],
-	['beanie', 'Beanie'],
+	['none', 'None', '🚫'],
+	['hat', 'Hat', '🎩'],
+	['cap', 'Cap', '🧢'],
+	['glasses', 'Glasses', '🕶'],
+	['crown', 'Crown', '👑'],
+	['headphones', 'Headphones', '🎧'],
+	['beanie', 'Beanie', '🧶'],
+	['catEars', 'Cat ears', '🐱'],
+	['scarf', 'Scarf', '🧣'],
+];
+const EYE_COLORS = ['#2b2118', '#4a3423', '#2f6f8f', '#3f8a5c', '#7a4a9a', '#1c1f28'];
+
+const TABS = [
+	['home', 'Home'],
+	['characters', 'Actors'],
+	['scene', 'World'],
+	['props', 'Props'],
+	['textures', 'Textures'],
+	['objects', 'Arrange'],
+	['dialogue', 'Story'],
+	['camera', 'Camera'],
+	['play', 'Play'],
+];
+
+const TIMES = [
+	{ id: 'dawn', label: 'Dawn', emoji: '🌅', skyTop: '#6f86b8', skyBottom: '#ffc9a8', sunColor: '#ffd2a0', sunElevation: 10, sun: 0.9, ambient: 0.65, fog: 0.02 },
+	{ id: 'noon', label: 'Noon', emoji: '☀️', skyTop: '#7cb7e8', skyBottom: '#dcefff', sunColor: '#ffffff', sunElevation: 64, sun: 1.7, ambient: 0.95, fog: 0.006 },
+	{ id: 'golden', label: 'Golden hour', emoji: '🌇', skyTop: '#ff9d6b', skyBottom: '#ffe0b5', sunColor: '#ffd9a8', sunElevation: 24, sun: 1.55, ambient: 0.8, fog: 0.014 },
+	{ id: 'dusk', label: 'Dusk', emoji: '🌆', skyTop: '#3b3a68', skyBottom: '#ff9884', sunColor: '#ff9c86', sunElevation: 8, sun: 1.05, ambient: 0.6, fog: 0.018 },
+	{ id: 'night', label: 'Night', emoji: '🌙', skyTop: '#070b1c', skyBottom: '#1d2742', sunColor: '#9db8ff', sunElevation: 38, sun: 0.35, ambient: 0.42, fog: 0.012 },
 ];
 const SHOTS = [
 	['auto', 'Auto'],
@@ -102,6 +131,7 @@ const PRESETS = [
 	{
 		id: 'studio',
 		label: 'Studio',
+		blurb: 'clean backdrop',
 		emoji: '🎬',
 		env: {
 			skyTop: '#aab6c9',
@@ -123,6 +153,7 @@ const PRESETS = [
 	{
 		id: 'beach',
 		label: 'Beach',
+		blurb: 'sun & water',
 		emoji: '🏖',
 		env: {
 			skyTop: '#ff9d6b',
@@ -144,6 +175,7 @@ const PRESETS = [
 	{
 		id: 'forest',
 		label: 'Forest',
+		blurb: 'green & misty',
 		emoji: '🌲',
 		env: {
 			skyTop: '#8fc7e8',
@@ -165,6 +197,7 @@ const PRESETS = [
 	{
 		id: 'nightcity',
 		label: 'Night city',
+		blurb: 'neon dusk',
 		emoji: '🌃',
 		env: {
 			skyTop: '#0d1530',
@@ -186,6 +219,7 @@ const PRESETS = [
 	{
 		id: 'room',
 		label: 'Room',
+		blurb: 'cozy interior',
 		emoji: '🛋',
 		env: {
 			skyTop: '#c3ccd8',
@@ -207,6 +241,7 @@ const PRESETS = [
 	{
 		id: 'space',
 		label: 'Space',
+		blurb: 'star field',
 		emoji: '🌌',
 		env: {
 			skyTop: '#05070f',
@@ -228,6 +263,7 @@ const PRESETS = [
 	{
 		id: 'void',
 		label: 'Void',
+		blurb: 'minimal grey',
 		emoji: '⬛',
 		env: {
 			skyTop: '#171a22',
@@ -252,8 +288,12 @@ const app = {
 	project: null,
 	studio: null,
 	selection: null,
-	tab: 'characters',
+	tab: 'home',
 	gizmo: 'translate',
+	game: null,
+	playActorId: null,
+	playThird: false,
+	gamepad: true,
 	snap: false,
 	clean: false,
 	playingVN: false,
@@ -297,7 +337,7 @@ function boot(options = {}) {
 		return;
 	}
 	requestAnimationFrame(tick);
-	setTimeout(() => toast('Welcome — try ▶ Play VN, then 🎥 Clean UI to record'), 500);
+	setTimeout(() => toast(app.tab === 'home' ? 'Welcome — pick a tool on the left, or press G for POV' : 'Welcome back'), 600);
 }
 
 function bootStudio() {
@@ -311,6 +351,10 @@ function bootStudio() {
 		syncGizmoToState();
 		commit();
 	};
+	studio.onFrame = (dt) => {
+		if (app.game) app.game.update(dt);
+	};
+	syncGamePrefs();
 	studio.setGizmoMode(app.gizmo);
 	studio.setEnvironment(app.project.environment, app.project);
 	studio.rebuildAll(app.project);
@@ -335,6 +379,12 @@ function showFatal(err) {
 		<pre class="hint" style="max-width:100%;overflow:auto;text-align:left">${esc(String(err?.stack || '').slice(0, 1200))}</pre>
 		<button class="btn primary" onclick="location.reload()">Reload</button>
 		<button class="btn sm" onclick="document.querySelector('#errorBox').hidden = true">Dismiss</button>`;
+}
+
+function syncGamePrefs() {
+	app.playActorId = app.project.game?.actorId || null;
+	app.playThird = !!app.project.game?.thirdPerson;
+	app.gamepad = app.project.game?.pad !== false;
 }
 
 function renderAll() {
@@ -378,7 +428,7 @@ function markDirty() {
 	}
 	clearTimeout(app.saveTimer);
 	app.saveTimer = setTimeout(() => {
-		if (!app.playingVN && !app.cam.playing) app.project.view = app.studio.view();
+		if (!app.playingVN && !app.cam.playing && !app.game) app.project.view = app.studio.view();
 		const ok = saveProject(app.project);
 		if (st) {
 			st.textContent = ok ? 'saved' : 'not saved';
@@ -466,6 +516,8 @@ const vec3Field = (label, base, arr, step = 0.05, attrs = '') =>
 function emptyState(icon, title, text) {
 	return `<div class="empty"><span class="big">${icon}</span><strong>${esc(title)}</strong><br>${text}</div>`;
 }
+
+const nextStep = (tab, label) => `<div class="next-step"><span class="hint"><b>Next</b></span><button class="btn sm accent" data-act="tab" data-tab="${tab}">${label} →</button></div>`;
 
 /* ---------------------------------------------------------------------------
    Selection
@@ -608,15 +660,14 @@ function handleInputEvent(e, isChange) {
 		if (!item) return;
 		if (path === 'textureId' && value === 'none') value = null;
 		setPath(item, path, value);
+		const cosmetic = path === 'name' || path === 'role' || path === 'visible' || path === 'locked';
 		if (el.dataset.tf) {
 			app.studio.updateTransform(P, id);
+		} else if (cosmetic) {
+			if (path === 'visible') app.studio.setVisible(id, !!value);
+			renderHUD();
 		} else {
 			queueItemRebuild(item, kind);
-			if (path === 'visible') {
-				app.studio.setVisible(id, !!value);
-				renderHUD();
-			}
-			if (path === 'name') renderHUD();
 		}
 		updateOutput(el, value);
 		if (isChange) {
@@ -664,6 +715,9 @@ function renderPanel() {
 	if (!p) return;
 	const scroll = p.scrollTop;
 	switch (app.tab) {
+		case 'home':
+			p.innerHTML = homePanel();
+			break;
 		case 'characters':
 			p.innerHTML = charactersPanel();
 			break;
@@ -685,103 +739,207 @@ function renderPanel() {
 		case 'camera':
 			p.innerHTML = cameraPanel();
 			break;
+		case 'play':
+			p.innerHTML = playPanel();
+			break;
 		default:
 			p.innerHTML = '';
 	}
 	p.scrollTop = scroll;
 }
 
+function homePanel() {
+	const P = app.project;
+	const stats = [
+		['characters', P.characters.length, 'Actors'],
+		['props', P.props.length, 'Props'],
+		['dialogue', P.dialogue.lines.length, 'Lines'],
+		['camera', P.camera.keyframes.length, 'Keys'],
+	];
+	let html = panelHead('Home', 'start here', `<button class="btn sm" data-act="guide">🚀 Quick tour</button>`);
+	html += '<div class="panel-body">';
+
+	html += `<div class="hero">
+		<div class="hero-kicker">Low Poly Studio</div>
+		<h3>Make a scene.<br><em>Tell a story.</em></h3>
+		<p>Build low-poly actors, worlds and props, write a visual novel, animate the camera — then walk the set yourself in POV.</p>
+		<div class="hero-row">
+			<button class="btn primary" data-act="tab" data-tab="characters">🧑‍🎤 Start creating</button>
+			<button class="btn" data-act="tab" data-tab="dialogue">💬 Write a story</button>
+			<button class="btn accent" data-act="game-open">🕹 Play POV</button>
+		</div>
+	</div>`;
+
+	html += `<div class="quick-grid">
+		<button class="quick" data-act="tab" data-tab="characters"><span class="q-ico">🧑‍🎤</span><span><strong>Actors</strong><small>Faces, hair, outfits, poses</small></span></button>
+		<button class="quick" data-act="tab" data-tab="scene"><span class="q-ico">🌤</span><span><strong>World</strong><small>Presets, time of day, scatter</small></span></button>
+		<button class="quick" data-act="tab" data-tab="props"><span class="q-ico">📦</span><span><strong>Props</strong><small>20 low-poly objects</small></span></button>
+		<button class="quick" data-act="tab" data-tab="textures"><span class="q-ico">🎨</span><span><strong>Textures</strong><small>Patterns &amp; image import</small></span></button>
+		<button class="quick" data-act="tab" data-tab="dialogue"><span class="q-ico">💬</span><span><strong>Story</strong><small>Dialogue, speakers &amp; shots</small></span></button>
+		<button class="quick accent" data-act="tab" data-tab="play"><span class="q-ico">🕹</span><span><strong>Play / POV</strong><small>Walk the scene, grab props</small></span></button>
+	</div>`;
+
+	html += `<div class="card">
+		<div class="card-head"><span class="card-title">Your scene</span><span class="badge">${P.characters.length + P.props.length} objects</span></div>
+		<div class="stat-grid">${stats.map(([tab, n, label]) => `<button class="stat" data-act="tab" data-tab="${tab}"><b>${n}</b><small>${label}</small></button>`).join('')}</div>
+		<div class="row" style="margin-top:9px">
+			<button class="btn sm" data-act="frame-all">◎ Frame scene</button>
+			<button class="btn sm" data-act="snapshot">📸 Screenshot</button>
+			<span class="spacer"></span>
+			<span class="hint" style="font-family:var(--mono)">${r2(P.camera.duration)}s camera</span>
+		</div>
+	</div>`;
+
+	html += `<div class="card">
+		<div class="card-head"><span class="card-title">Five steps to a film</span><span class="badge muted">tap a step</span></div>
+		<div class="steps">${[
+			['characters', '1', 'Cast your actors', 'Design hair, outfit, expression and pose.'],
+			['scene', '2', 'Build the set', 'Pick a world, set the light, scatter props.'],
+			['dialogue', '3', 'Write the story', 'One line per beat, with speaker and camera shot.'],
+			['camera', '4', 'Animate the camera', 'Use quick moves or capture keyframes on the timeline.'],
+			['play', '5', 'Play &amp; record', 'Walk in POV, or hide the UI and screen-record.'],
+		].map(([tab, n, t, d]) => `<button class="step" data-act="tab" data-tab="${tab}"><span class="n">${n}</span><span><strong>${t}</strong><small>${d}</small></span></button>`).join('')}</div>
+	</div>`;
+
+	html += `<div class="card"><div class="row">
+		<button class="btn sm" data-act="new-demo">🌴 Load demo</button>
+		<button class="btn sm" data-act="new">🗋 Blank project</button>
+		<span class="spacer"></span>
+		<button class="btn sm" data-act="help">❔ All shortcuts</button>
+	</div></div>`;
+	html += '</div>';
+	return html;
+}
+
 function charactersPanel() {
 	const P = app.project;
 	const chars = P.characters;
-	let html = panelHead('Characters', `${chars.length} actor${chars.length === 1 ? '' : 's'}`, `<button class="btn primary sm" data-act="char-add">+ Actor</button>`);
+	let html = panelHead('Actors', `${chars.length} in your cast`, `<button class="btn primary sm" data-act="char-add">＋ New actor</button>`);
 	html += '<div class="panel-body">';
-	html += `<div class="chips">${
-		chars
-			.map(
-				(c) =>
-					`<button class="chip ${app.selection === c.id ? 'on' : ''}" data-act="select-item" data-id="${c.id}"><span class="dot" style="background:${esc(
-						c.role
-					)}"></span>${esc(c.name)}</button>`
-			)
-			.join('') || '<span class="hint">No actors yet — add one to start casting.</span>'
-	}</div>`;
+
+	html += `<div class="card">
+		<div class="card-head"><span class="card-title">Cast</span><span class="badge char">character creator</span></div>
+		<div class="cast-list">${
+			chars
+				.map(
+					(c) =>
+						`<button class="cast ${app.selection === c.id ? 'on' : ''}" data-act="select-item" data-id="${c.id}"><span class="av" style="background:${esc(
+							c.role
+						)}">${esc((c.name || '?').slice(0, 1).toUpperCase())}</span>${esc(c.name)}</button>`
+				)
+				.join('') || '<span class="hint">No actors yet — click “New actor”.</span>'
+		}</div>
+	</div>`;
 
 	const c = characterById(P, app.selection);
 	if (!c) {
-		html += emptyState('🕺', 'Pick an actor', 'Select a character above or click one in the scene. Create a new actor to design their body, hair, clothes and face.');
+		html += emptyState('🧑‍🎤', 'Pick or create an actor', 'Every story needs a cast. Add an actor, then design their face, hair, outfit, pose and eye colour.');
+		html += `<div class="row" style="justify-content:center"><button class="btn primary" data-act="char-add">＋ New actor</button></div>`;
 		html += '</div>';
 		return html;
 	}
 
+	const meters = characterHeight(c).toFixed(2);
+	const swatches = (path, value, colors) =>
+		`<div class="sw-row">${colors
+			.map(
+				(col) =>
+					`<button class="sw ${String(col).toLowerCase() === String(value).toLowerCase() ? 'on' : ''}" style="background:${col}" data-act="char-color" data-id="${
+						c.id
+					}" data-path="${path}" data-value="${col}" title="${col}"></button>`
+			)
+			.join('')}<label class="sw custom" title="Custom colour"><input type="color" data-path="${path}" value="${esc(value)}"></label></div>`;
+	const optionGrid = (path, items, value) =>
+		`<div class="opt-grid">${items
+			.map(
+				([v, label, icon]) =>
+					`<button class="opt ${value === v ? 'on' : ''}" data-act="char-style" data-id="${c.id}" data-path="${path}" data-value="${v}"><em>${
+						icon || '•'
+					}</em>${esc(label)}</button>`
+			)
+			.join('')}</div>`;
+
 	html += `<div class="stack" data-item="${c.id}" data-kind="char">`;
 
 	html += `<div class="card">
-		<div class="card-head"><span class="card-title">Identity</span><span class="badge char">Actor</span></div>
-		<div class="stack-sm">
-			${textField('Name', 'name', c.name)}
-			${colorField('Name plate', 'role', c.role)}
+		<div class="actor-hd">
+			<div class="big-av">🧑‍🎤</div>
+			<div class="who">
+				<input type="text" data-path="name" value="${esc(c.name)}" maxlength="28" aria-label="Actor name">
+				<small>${meters} m tall · ${esc(c.pose)} pose · ${esc(c.expression)}</small>
+			</div>
+			<button class="btn sm accent" data-act="game-start" data-id="${c.id}" title="Walk the scene as this actor">🕹 Play</button>
 		</div>
-		<div class="hint" style="margin-top:6px">The name plate colour is used in dialogue.</div>
+		<div class="row">
+			<label class="field color" style="flex:1"><span class="lab" style="flex:0 0 52px">Plate</span><span class="swatch"><input type="color" data-path="role" value="${esc(
+				c.role
+			)}"></span></label>
+			<button class="btn sm" data-act="frame-item">◎ Frame</button>
+			<button class="btn sm" data-act="face-camera">↻ Face camera</button>
+		</div>
 	</div>`;
 
 	html += `<div class="card">
 		<div class="card-head"><span class="card-title">Expression</span><span class="badge muted">${esc(c.expression)}</span></div>
-		<div class="seg wide" style="flex-wrap:wrap">${EXPRESSIONS.map(
-			([v, label, emoji]) => `<button class="${c.expression === v ? 'on' : ''}" data-act="set-expression" data-value="${v}" data-id="${c.id}">${emoji} ${label}</button>`
+		<div class="opt-grid">${EXPRESSIONS.map(
+			([v, label, emoji]) => `<button class="opt ${c.expression === v ? 'on' : ''}" data-act="set-expression" data-id="${c.id}" data-value="${v}"><em>${emoji}</em>${label}</button>`
 		).join('')}</div>
+		<div class="card-head" style="margin:12px 0 4px"><span class="card-title">Eye colour</span></div>
+		${swatches('eyeColor', c.eyeColor || '#2b2118', EYE_COLORS)}
+		<div class="card-head" style="margin:8px 0 4px"><span class="card-title">Skin tone</span></div>
+		${swatches('skin', c.skin, SKIN_TONES)}
 	</div>`;
 
 	html += `<div class="card">
-		<div class="card-head"><span class="card-title">Pose</span></div>
-		<div class="seg wide" style="flex-wrap:wrap">${POSES.map(
-			([v, label]) => `<button class="${c.pose === v ? 'on' : ''}" data-act="set-pose" data-value="${v}" data-id="${c.id}">${label}</button>`
-		).join('')}</div>
-		<div class="hint" style="margin-top:6px">Poses are baked into the model and animate subtly in idle.</div>
+		<div class="card-head"><span class="card-title">Hair</span><button class="btn xs" data-act="char-randomize" data-id="${c.id}" title="Randomise the whole look">🎲 Roll look</button></div>
+		${optionGrid('hairStyle', HAIR_STYLES, c.hairStyle)}
+		${swatches('hairColor', c.hairColor, HAIR_COLORS)}
 	</div>`;
 
 	html += `<div class="card">
-		<div class="card-head"><span class="card-title">Appearance</span>
-			<button class="btn xs" data-act="char-randomize" data-id="${c.id}" title="Randomise hair, outfit and colours">🎲 Roll</button>
-		</div>
-		<div class="grid2">
-			${colorField('Skin', 'skin', c.skin)}
-			${colorField('Hair', 'hairColor', c.hairColor)}
-		</div>
-		${selectField('Hair style', 'hairStyle', c.hairStyle, HAIR_STYLES)}
-		<div class="grid2" style="margin-top:6px">
-			${colorField('Top', 'topColor', c.topColor)}
-			${colorField('Bottom', 'bottomColor', c.bottomColor)}
-		</div>
-		${selectField('Outfit', 'topStyle', c.topStyle, TOP_STYLES)}
-		${selectField('Accessory', 'accessory', c.accessory, ACCESSORIES)}
-		<div class="grid2" style="margin-top:6px">
+		<div class="card-head"><span class="card-title">Outfit</span><span class="badge muted">${esc(c.topStyle)}</span></div>
+		${optionGrid('topStyle', TOP_STYLES, c.topStyle)}
+		<div class="card-head" style="margin:10px 0 4px"><span class="card-title">Top colour</span></div>
+		${swatches('topColor', c.topColor, CLOTH_COLORS)}
+		<div class="card-head" style="margin:6px 0 4px"><span class="card-title">Bottom colour</span></div>
+		${swatches('bottomColor', c.bottomColor, CLOTH_COLORS)}
+		<div class="grid2" style="margin-top:8px">
 			${colorField('Shoes', 'shoeColor', c.shoeColor)}
 			${colorField('Accent', 'accentColor', c.accentColor)}
 		</div>
-		<div class="divider" style="margin:9px 0"></div>
-		${rangeField('Height', 'height', c.height, 0.7, 1.35, 0.01, '×')}
-		${rangeField('Build', 'build', c.build, 0.7, 1.4, 0.01, '×')}
-		${rangeField('Head size', 'headScale', c.headScale, 0.8, 1.25, 0.01, '×')}
 	</div>`;
 
 	html += `<div class="card">
-		<div class="card-head"><span class="card-title">Placement</span>
-			<button class="btn xs" data-act="frame-item">◎ Frame</button>
-			<button class="btn xs" data-act="face-camera">↻ Face camera</button>
-		</div>
+		<div class="card-head"><span class="card-title">Accessory</span></div>
+		${optionGrid('accessory', ACCESSORIES, c.accessory)}
+	</div>`;
+
+	html += `<div class="card">
+		<div class="card-head"><span class="card-title">Body</span><span class="badge muted">${meters} m</span></div>
+		${rangeField('Height', 'height', c.height, 0.7, 1.35, 0.01, '×')}
+		${rangeField('Build', 'build', c.build, 0.7, 1.4, 0.01, '×')}
+		${rangeField('Head size', 'headScale', c.headScale, 0.8, 1.25, 0.01, '×')}
+		<div class="metric"><span>1.79 × ${r2(c.height)} height × ${r2(c.transform.s)} scale</span><span>${meters} m</span></div>
+		<div class="card-head" style="margin:12px 0 5px"><span class="card-title">Pose</span></div>
+		<div class="opt-grid">${POSES.map(
+			([v, label, icon]) => `<button class="opt ${c.pose === v ? 'on' : ''}" data-act="set-pose" data-id="${c.id}" data-value="${v}"><em>${icon}</em>${label}</button>`
+		).join('')}</div>
+	</div>`;
+
+	html += `<div class="card">
+		<div class="card-head"><span class="card-title">Placement</span><button class="btn xs" data-act="frame-item">◎ Frame</button></div>
 		${vec3Field('Position', 'transform.p', c.transform.p, 0.05, 'data-tf="1"')}
 		${vec3Field('Rotation', 'transform.r', c.transform.r, 1, 'data-tf="1"')}
 		${rangeField('Scale', 'transform.s', c.transform.s, 0.3, 3, 0.01, '×', 'data-tf="1"')}
-		<div class="row" style="margin-top:9px">
-			${checkField('Visible', 'visible', c.visible !== false)}
-			${checkField('Locked', 'locked', !!c.locked)}
-			<span class="spacer"></span>
+		<div class="row" style="margin-top:8px">${checkField('Visible', 'visible', c.visible !== false)}${checkField('Locked', 'locked', !!c.locked)}</div>
+		<div class="row" style="margin-top:8px">
 			<button class="btn sm" data-act="item-duplicate" data-id="${c.id}">⧉ Duplicate</button>
-			<button class="btn sm danger" data-act="char-delete" data-id="${c.id}">Delete</button>
+			<span class="spacer"></span>
+			<button class="btn sm danger" data-act="char-delete" data-id="${c.id}">Delete actor</button>
 		</div>
 	</div>`;
 
+	html += nextStep('scene', 'Build the world');
 	html += '</div></div>';
 	return html;
 }
@@ -789,41 +947,62 @@ function charactersPanel() {
 function scenePanel() {
 	const P = app.project;
 	const env = P.environment;
-	let html = panelHead('Scene', 'environment', `<button class="btn sm" data-act="env-reset">↺ Reset</button>`);
+	let html = panelHead('World', 'scene creator', `<button class="btn sm" data-act="env-reset">↺ Reset</button>`);
 	html += '<div class="panel-body">';
+
 	html += `<div class="card">
-		<div class="card-head"><span class="card-title">Set the stage</span><span class="badge">Preset</span></div>
-		<div class="preset-grid">${PRESETS.map(
-			(p) => `<button class="preset ${env.preset === p.id ? 'on' : ''}" data-act="apply-preset" data-preset="${p.id}"><span>${p.emoji}</span>${p.label}</button>`
+		<div class="card-head"><span class="card-title">Pick a world</span><span class="badge">${esc(PRESETS.find((p) => p.id === env.preset)?.label || 'custom')}</span></div>
+		<div class="preset-cards">${PRESETS.map(
+			(p) =>
+				`<button class="preset-card ${env.preset === p.id ? 'on' : ''}" data-act="apply-preset" data-preset="${p.id}" style="--a:${p.env.skyTop};--b:${p.env.skyBottom};--g:${p.env.groundColor}"><b>${p.emoji} ${p.label}</b><small>${esc(
+					p.blurb || ''
+				)}</small></button>`
 		).join('')}</div>
 	</div>`;
 
+	const az = D2R(env.sunAzimuth || 0);
+	const rho = 46 - (clamp(env.sunElevation || 0, 0, 90) / 90) * 40;
+	const sx = 58 + Math.cos(az) * rho;
+	const sy = 58 + Math.sin(az) * rho;
 	html += `<div class="card">
-		<div class="card-head"><span class="card-title">Sky & light</span></div>
+		<div class="card-head"><span class="card-title">Time of day</span><span class="badge muted">Sun &amp; sky</span></div>
+		<div class="time-row">${TIMES.map(
+			(t) => `<button class="time-chip ${env.time === t.id ? 'on' : ''}" data-act="time-of-day" data-value="${t.id}"><span>${t.emoji}</span>${t.label}</button>`
+		).join('')}</div>
+		<div class="sun-pad" id="sunPad" title="Drag the sun: angle = azimuth, distance = height">
+			<div class="sun-dot" id="sunDot" style="left:${sx}px;top:${sy}px"></div>
+			<span class="pole n">N</span><span class="pole e">E</span><span class="pole s">S</span><span class="pole w">W</span>
+		</div>
+		<div class="grid2">
+			${colorField('Sun colour', 'environment.sunColor', env.sunColor, 'data-env="1"')}
+			${colorField('Ground', 'environment.groundColor', env.groundColor, 'data-env="1"')}
+		</div>
+		${rangeField('Sun strength', 'environment.sun', env.sun, 0, 3, 0.05, '', 'data-env="1"')}
+		${rangeField('Ambient', 'environment.ambient', env.ambient, 0, 2.2, 0.05, '', 'data-env="1"')}
+		${rangeField('Sun height', 'environment.sunElevation', env.sunElevation, 2, 88, 1, '°', 'data-env="1"')}
+		${rangeField('Sun angle', 'environment.sunAzimuth', env.sunAzimuth, 0, 360, 1, '°', 'data-env="1"')}
+	</div>`;
+
+	html += `<div class="card">
+		<div class="card-head"><span class="card-title">Sky &amp; air</span></div>
 		<div class="grid2">
 			${colorField('Sky top', 'environment.skyTop', env.skyTop, 'data-env="1"')}
 			${colorField('Sky low', 'environment.skyBottom', env.skyBottom, 'data-env="1"')}
 		</div>
-		${colorField('Sun colour', 'environment.sunColor', env.sunColor, 'data-env="1"')}
-		${rangeField('Sun', 'environment.sun', env.sun, 0, 3, 0.05, '', 'data-env="1"')}
-		${rangeField('Ambient', 'environment.ambient', env.ambient, 0, 2.2, 0.05, '', 'data-env="1"')}
-		${rangeField('Azimuth', 'environment.sunAzimuth', env.sunAzimuth, 0, 360, 1, '°', 'data-env="1"')}
-		${rangeField('Elevation', 'environment.sunElevation', env.sunElevation, 5, 85, 1, '°', 'data-env="1"')}
-	</div>`;
-
-	html += `<div class="card">
-		<div class="card-head"><span class="card-title">Ground &amp; air</span></div>
-		${colorField('Ground', 'environment.groundColor', env.groundColor, 'data-env="1"')}
-		${rangeField('Ground size', 'environment.groundSize', env.groundSize, 16, 120, 2, 'm', 'data-env="1"')}
-		${rangeField('Distance fog', 'environment.fog', env.fog, 0, 0.06, 0.002, '', 'data-env="1"')}
+		${rangeField('Fog', 'environment.fog', env.fog, 0, 0.06, 0.002, '', 'data-env="1"')}
 		${selectField('Particles', 'environment.particles', env.particles, [
 			['none', 'None'],
-			['dust', 'Dust'],
+			['dust', 'Dust motes'],
 			['snow', 'Snow'],
 			['rain', 'Rain'],
 			['fireflies', 'Fireflies'],
 		], 'data-env="1"')}
-		<div class="row" style="margin-top:8px">
+	</div>`;
+
+	html += `<div class="card">
+		<div class="card-head"><span class="card-title">Ground</span></div>
+		${rangeField('Ground size', 'environment.groundSize', env.groundSize, 16, 120, 2, 'm', 'data-env="1"')}
+		<div class="row" style="margin-top:4px">
 			${checkField('Ground', 'environment.showGround', env.showGround !== false, 'data-env="1"')}
 			${checkField('Grid', 'environment.showGrid', !!env.showGrid, 'data-env="1"')}
 			${checkField('Water', 'environment.water', !!env.water, 'data-env="1"')}
@@ -831,18 +1010,25 @@ function scenePanel() {
 	</div>`;
 
 	html += `<div class="card">
-		<div class="card-head"><span class="card-title">Quick scatter</span><span class="badge muted">props</span></div>
+		<div class="card-head"><span class="card-title">Quick build</span><span class="badge muted">one click</span></div>
+		<div class="quick-add">
+			<button class="btn sm" data-act="char-add">🧑‍🎤 Add actor</button>
+			<button class="btn sm" data-act="prop-add" data-kind="rock">🪨 Add rock</button>
+			<button class="btn sm" data-act="prop-add" data-kind="tree">🌳 Add tree</button>
+			<button class="btn sm" data-act="prop-add" data-kind="crate">📦 Add crate</button>
+		</div>
+		<div class="divider" style="margin:10px 0"></div>
 		<div class="row tight">
-			<select id="scatterKind" style="flex:1 1 100%;min-width:0;background:#0a101a;border:1px solid var(--line);border-radius:6px;padding:5px 7px;font-size:11.5px">
+			<select id="scatterKind" title="What to scatter" style="flex:1 1 100%;min-width:0;background:#0a101a;border:1px solid var(--line);border-radius:6px;padding:6px 7px;font-size:11.5px">
 				${PROP_CATALOG.map((p) => `<option value="${p.kind}">${p.emoji} ${p.label}</option>`).join('')}
 			</select>
 		</div>
-		<div class="row" style="margin-top:6px">
-			${numField('Count', 'x', 8, 1, 'id="scatterCount" min="1" max="80"').replace('data-path="x"', '')}
-			${numField('Radius', 'x', 8, 1, 'id="scatterRadius" min="2" max="40"').replace('data-path="x"', '')}
-			<button class="btn primary sm" data-act="scatter" style="flex:1">Scatter</button>
+		<div class="grid2" style="margin-top:6px">
+			${fieldWrap('Count', '<input type="number" id="scatterCount" value="8" min="1" max="80" step="1">')}
+			${fieldWrap('Radius', '<input type="number" id="scatterRadius" value="8" min="2" max="40" step="1">')}
 		</div>
-		<div class="hint">Randomly places props around the camera's focus point. Scatter a forest in one click.</div>
+		<button class="btn primary sm" data-act="scatter" style="width:100%;margin-top:6px">✨ Scatter props</button>
+		<div class="hint" style="margin-top:6px">Scatters around the point the camera is looking at — great for instant forests.</div>
 	</div>`;
 
 	html += `<div class="card">
@@ -854,6 +1040,8 @@ function scenePanel() {
 			<button class="btn sm danger" data-act="clear-props">Clear all props</button>
 		</div>
 	</div>`;
+
+	html += nextStep('dialogue', 'Write the story');
 	html += '</div>';
 	return html;
 }
@@ -907,11 +1095,12 @@ function propsPanel() {
 		</div>
 		</div>`;
 	} else if (item && kind === 'char') {
-		html += emptyState('🧑‍🎤', `${esc(item.name)} is selected`, 'That is a character. Open the Characters tab to edit them, or pick a prop above to style it.') +
+		html += emptyState('🧑‍🎤', `${esc(item.name)} is selected`, 'That is an actor. Open the Actors tool to edit them, or pick a prop above to style it.') +
 			`<div class="row" style="justify-content:center"><button class="btn sm" data-act="tab" data-tab="characters">Edit character</button></div>`;
 	} else {
 		html += emptyState('📦', 'Add a prop', 'Click any item in the library to drop it into the scene. Then edit its colour, material, texture and transform here.');
 	}
+	html += nextStep('textures', 'Style it with textures');
 	html += '</div>';
 	return html;
 }
@@ -919,11 +1108,17 @@ function propsPanel() {
 function texturesPanel() {
 	const P = app.project;
 	const selProp = app.selection && itemKind(P, app.selection) === 'prop' ? selectedItem() : null;
-	let html = panelHead('Textures', `${P.textures.length} material${P.textures.length === 1 ? '' : 's'}`, '');
+	let html = panelHead('Textures', `${P.textures.length} material${P.textures.length === 1 ? '' : 's'}`, `<button class="btn primary sm" data-act="tex-import-btn">⬆ Import</button>`);
 	html += '<div class="panel-body">';
 
+	html += `<button class="dropzone" data-act="tex-import-btn" id="texDrop">
+		<span class="dz-ico">🖼</span>
+		<span><b>Import your own texture</b><small>Drop an image here, paste with Ctrl+V, or click to choose a PNG / JPG / WebP.</small></span>
+	</button>
+	<input type="file" id="texImport" accept="image/png,image/jpeg,image/webp" multiple hidden>`;
+
 	html += `<div class="card">
-		<div class="card-head"><span class="card-title">Create procedural texture</span><span class="badge tex">Canvas</span></div>
+		<div class="card-head"><span class="card-title">Create a pattern</span><span class="badge tex">Canvas</span></div>
 		${fieldWrap('Name', '<input type="text" id="texName" placeholder="My texture" maxlength="28">')}
 		${fieldWrap('Pattern', `<select id="texType">${TEXTURE_TYPES.map((t) => `<option value="${t.type}">${t.label}</option>`).join('')}</select>`)}
 		<div class="color-pair" style="margin-top:6px">
@@ -931,26 +1126,23 @@ function texturesPanel() {
 			<label class="field color"><span class="lab">Colour B</span><span class="swatch"><input type="color" id="texB" value="#2a3348"></span></label>
 		</div>
 		<label class="field range"><span class="lab">Scale</span><input type="range" id="texScale" min="0.5" max="8" step="0.1" value="2"><output>2×</output></label>
-		<div class="row" style="margin-top:8px">
-			<button class="btn primary sm" data-act="tex-create">＋ Create</button>
-			<button class="btn sm" data-act="tex-import-btn">⬆ Import image</button>
-			<input type="file" id="texImport" accept="image/png,image/jpeg,image/webp" hidden>
-		</div>
+		<button class="btn primary sm" data-act="tex-create" style="width:100%;margin-top:8px">＋ Create texture</button>
 	</div>`;
 
 	html += `<div class="card">
 		<div class="card-head"><span class="card-title">Library</span><span class="badge muted">click to select</span></div>
-		<div class="tex-grid">${
+		<div class="tex-grid big">${
 			P.textures
 				.map(
 					(t) => `<button class="tex-card ${app.selectedTex === t.id ? 'on' : ''}" data-act="tex-select" data-id="${t.id}">
-						<img src="${textureThumb(t, 96)}" alt="">
+						<img src="${textureThumb(t, 128)}" alt="">
 						<span class="tex-scale">${r2(t.scale)}×</span>
 						${selProp && selProp.textureId === t.id ? '<span class="used">USED</span>' : ''}
+						${t.type === 'image' ? '<span class="badge tex" style="position:absolute;right:4px;bottom:22px">IMG</span>' : ''}
 						<span class="tex-name">${esc(t.name)}</span>
 					</button>`
 				)
-				.join('') || '<div class="hint">No textures yet — create one above.</div>'
+				.join('') || '<div class="hint">No textures yet — import an image or create a pattern.</div>'
 		}</div>
 	</div>`;
 
@@ -961,10 +1153,14 @@ function texturesPanel() {
 				<button class="btn primary sm" data-act="tex-apply" ${app.selectedTex ? '' : 'disabled'}>Apply selected texture</button>
 				<button class="btn sm" data-act="tex-clear">Remove texture</button>
 			</div>
-			${app.selectedTex ? `<div class="hint" style="margin-top:6px">Applying <b>${esc(P.textures.find((t) => t.id === app.selectedTex)?.name || '')}</b>. Adjust repeat in the Props tab. Textures multiply with the prop colour — use white for an untinted look.</div>` : '<div class="hint" style="margin-top:6px">Pick a texture in the library first.</div>'}
+			${
+				app.selectedTex
+					? `<div class="hint" style="margin-top:6px">Applying <b>${esc(P.textures.find((t) => t.id === app.selectedTex)?.name || '')}</b>. Tune repeat in Props. Textures multiply with the prop colour — white keeps them untinted.</div>`
+					: '<div class="hint" style="margin-top:6px">Pick a texture in the library first.</div>'
+			}
 		</div>`;
 	} else {
-		html += `<div class="card"><div class="hint">Select a prop in the scene to apply a texture to it. Textures tint with the prop colour.</div></div>`;
+		html += `<div class="card"><div class="hint">Select a prop in the scene (or in <b>Props</b>) and an imported texture applies to it automatically. Textures tint with the prop colour.</div></div>`;
 	}
 
 	if (app.selectedTex) {
@@ -972,15 +1168,82 @@ function texturesPanel() {
 		if (t) {
 			html += `<div class="card" data-tex="${t.id}">
 				<div class="card-head"><span class="card-title">“${esc(t.name)}”</span><span class="badge tex">${esc(t.type)}</span></div>
-				${t.dataUrl ? '<div class="hint">Imported image — colour controls do not apply.</div>' : `<div class="color-pair">${colorField('Colour A', 'a', t.a)}${colorField('Colour B', 'b', t.b)}</div>`}
+				${t.dataUrl ? '<div class="hint">Imported image — colour controls do not apply. This image is stored in the project.</div>' : `<div class="color-pair">${colorField('Colour A', 'a', t.a)}${colorField('Colour B', 'b', t.b)}</div>`}
 				${rangeField('Pattern scale', 'scale', t.scale, 0.5, 8, 0.1, '×')}
 				<div class="hint" style="margin-top:6px">Changes apply to every prop using this texture.</div>
 				<div class="row" style="margin-top:8px">
+					${selProp ? `<button class="btn sm accent" data-act="tex-apply">Apply to ${esc(selProp.name)}</button>` : ''}
+					<span class="spacer"></span>
 					<button class="btn sm danger" data-act="tex-delete" data-id="${t.id}">Delete texture</button>
 				</div>
 			</div>`;
 		}
 	}
+
+	html += nextStep('props', 'Place a prop to texture');
+	html += '</div>';
+	return html;
+}
+
+function playPanel() {
+	const P = app.project;
+	const actorId = app.playActorId || P.characters[0]?.id;
+	const actor = characterById(P, actorId);
+	const playing = !!app.game;
+	let html = panelHead('Play', 'POV & game mode', playing ? `<button class="btn sm danger" data-act="game-exit">■ Stop</button>` : `<button class="btn primary sm" data-act="game-start" ${actor ? '' : 'disabled'}>▶ Enter POV</button>`);
+	html += '<div class="panel-body">';
+
+	html += `<div class="cam-callout"><span class="cc-ico">🕹</span><span><b>Walk the scene as any actor</b><small>First-person eyes, mouse or stick look, WASD / joystick movement, jumping and pick-up. Switch to third person with <b>F</b>.</small></span></div>`;
+
+	if (!P.characters.length) {
+		html += emptyState('🧑‍🎤', 'No actors to play', 'Create an actor first — then you can take their point of view.');
+		html += `<div class="row" style="justify-content:center"><button class="btn primary" data-act="tab" data-tab="characters">＋ Create an actor</button></div>`;
+		html += '</div>';
+		return html;
+	}
+
+	html += `<div class="card">
+		<div class="card-head"><span class="card-title">Play as</span><span class="badge char">${P.characters.length} actor${P.characters.length === 1 ? '' : 's'}</span></div>
+		<div class="cast-list">${P.characters
+			.map(
+				(c) => `<button class="cast ${actorId === c.id ? 'on' : ''}" data-act="play-actor" data-id="${c.id}"><span class="av" style="background:${esc(c.role)}">${esc(
+					(c.name || '?').slice(0, 1).toUpperCase()
+				)}</span>${esc(c.name)}${c.id === actorId ? ' <b style="font-size:8px;color:var(--mint)">PICKED</b>' : ''}</button>`
+			)
+			.join('')}</div>
+		<div class="row" style="margin-top:9px">
+			<button class="btn primary" data-act="game-start" style="flex:1">🕹 Enter POV as ${esc(actor?.name || '—')}</button>
+		</div>
+	</div>`;
+
+	html += `<div class="card">
+		<div class="card-head"><span class="card-title">Camera &amp; controls</span></div>
+		<div class="seg wide" style="margin-bottom:8px">
+			<button class="${!app.playThird ? 'on' : ''}" data-act="play-view" data-value="first">👁 First person</button>
+			<button class="${app.playThird ? 'on' : ''}" data-act="play-view" data-value="third">🎥 Third person</button>
+		</div>
+		<label class="field check"><input type="checkbox" ${app.gamepad ? 'checked' : ''} data-act="play-pad"><span>On-screen gamepad (joystick + look pad + buttons)</span></label>
+		<div class="kbd-grid" style="margin-top:8px">
+			<div><span>Move</span><span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd></span></div>
+			<div><span>Look</span><span>mouse / look pad</span></div>
+			<div><span>Run</span><span><kbd>Shift</kbd></span></div>
+			<div><span>Jump</span><span><kbd>Space</kbd></span></div>
+			<div><span>Grab / drop prop</span><span><kbd>E</kbd></span></div>
+			<div><span>1st / 3rd person</span><span><kbd>F</kbd></span></div>
+			<div><span>Exit POV</span><span><kbd>Esc</kbd></span></div>
+		</div>
+		<div class="hint" style="margin-top:6px">Walk close to a small prop and face it — a prompt appears. Big props (buildings, trees) are too heavy to lift.</div>
+	</div>`;
+
+	html += `<div class="card">
+		<div class="card-head"><span class="card-title">More ways to watch</span></div>
+		<div class="quick-add">
+			<button class="btn sm" data-act="vn-play">▶ Play story</button>
+			<button class="btn sm" data-act="cam-play">🎬 Play camera</button>
+			<button class="btn sm" data-act="clean-toggle">🎥 Clean UI</button>
+			<button class="btn sm" data-act="tab" data-tab="camera">⏱ Camera timeline</button>
+		</div>
+	</div>`;
 
 	html += '</div>';
 	return html;
@@ -988,7 +1251,7 @@ function texturesPanel() {
 
 function objectsPanel() {
 	const P = app.project;
-	let html = panelHead('Scene Edit', `${P.characters.length + P.props.length} objects`, `<button class="btn sm" data-act="select-none">Deselect</button>`);
+	let html = panelHead('Arrange', 'scene graph', `<button class="btn sm" data-act="select-none">Deselect</button>`);
 	html += '<div class="panel-body">';
 
 	const row = (item, kind) => `<div class="obj-row ${app.selection === item.id ? 'on' : ''}" data-act="select-item" data-id="${item.id}">
@@ -1032,6 +1295,7 @@ function objectsPanel() {
 	} else {
 		html += `<div class="card"><div class="hint">Select an object in the list or click it in the viewport to inspect and transform it. Use <b>W</b>, <b>E</b>, <b>R</b> to switch the gizmo.</div></div>`;
 	}
+	html += nextStep('dialogue', 'Write the story');
 	html += '</div>';
 	return html;
 }
@@ -1039,7 +1303,7 @@ function objectsPanel() {
 function dialoguePanel() {
 	const P = app.project;
 	const lines = P.dialogue.lines;
-	let html = panelHead('Dialogue', `${lines.length} line${lines.length === 1 ? '' : 's'}`, `<button class="btn primary sm" data-act="vn-play">▶ Play</button>`);
+	let html = panelHead('Story', `${lines.length} line${lines.length === 1 ? '' : 's'}`, `<button class="btn primary sm" data-act="vn-play">▶ Play</button>`);
 	html += '<div class="panel-body">';
 
 	html += `<div class="card">
@@ -1053,7 +1317,7 @@ function dialoguePanel() {
 	</div>`;
 
 	if (!P.characters.length) {
-		html += `<div class="card"><div class="hint">Tip: create actors in the Characters tab so you can assign speakers.</div></div>`;
+		html += `<div class="card"><div class="hint">Tip: create actors in the Actors tool so you can assign speakers.</div></div>`;
 	}
 
 	html += `<div class="line-list">${lines
@@ -1085,6 +1349,7 @@ function dialoguePanel() {
 		.join('') || emptyState('💬', 'No dialogue yet', 'Add a line and press ▶ to preview the scene as a visual novel.')}</div>`;
 
 	html += `<div class="row" style="justify-content:center;margin-top:10px"><button class="btn sm" data-act="line-add">＋ Add line</button></div>`;
+	html += nextStep('camera', 'Animate the camera');
 	html += '</div>';
 	return html;
 }
@@ -1093,8 +1358,22 @@ function cameraPanel() {
 	const P = app.project;
 	const cam = P.camera;
 	const kfs = [...cam.keyframes].sort((a, b) => a.t - b.t);
-	let html = panelHead('Camera', `${kfs.length} keyframe${kfs.length === 1 ? '' : 's'}`, `<button class="btn primary sm" data-act="cam-play">${app.cam.playing ? '■ Stop' : '▶ Play'}</button>`);
+	let html = panelHead('Camera', 'movement & keyframes', `<button class="btn primary sm" data-act="cam-play">${app.cam.playing ? '■ Stop' : '▶ Play'}</button>`);
 	html += '<div class="panel-body">';
+
+	html += `<div class="cam-callout"><span class="cc-ico">🎬</span><span><b>Camera movement lives here</b><small>Orbit to a shot and capture it — or drop in a ready-made move and press play.</small></span></div>`;
+
+	html += `<div class="card">
+		<div class="card-head"><span class="card-title">Quick moves</span><span class="badge">auto keyframes</span></div>
+		<div class="move-grid">
+			<button class="move" data-act="cam-move" data-value="orbit" title="Circle around the subject"><em>↻</em>Orbit</button>
+			<button class="move" data-act="cam-move" data-value="push" title="Move closer"><em>➡</em>Push in</button>
+			<button class="move" data-act="cam-move" data-value="crane" title="Rise up"><em>⬆</em>Crane up</button>
+			<button class="move" data-act="cam-move" data-value="pan" title="Slide sideways"><em>↔</em>Pan</button>
+		</div>
+		<button class="btn primary sm" data-act="kf-capture" style="width:100%;margin-top:8px">⌖ Capture this view at the playhead</button>
+		<div class="hint" style="margin-top:6px">Quick moves add a keyframe 2 s after the last one. Use the timeline below, the top bar or <b>C</b> to play it.</div>
+	</div>`;
 
 	html += `<div class="card">
 		<div class="card-head"><span class="card-title">Free camera</span><span class="badge muted">orbit view</span></div>
@@ -1186,17 +1465,20 @@ function renderHUD() {
 			<button class="hud-btn" data-act="cam-reset" title="Reset camera">⌂</button>
 		</div>
 	</div>
-	<div class="hud-hint">drag orbit · wheel zoom · <b>H</b> clean UI · <b>P</b> VN · <b>C</b> camera</div>`;
+	<div class="hud-hint">drag orbit · wheel zoom · <b>G</b> POV · <b>H</b> clean UI · <b>P</b> story · <b>C</b> camera</div>`;
 }
 
 function updateTopbar() {
 	$$('.tab').forEach((t) => t.classList.toggle('on', t.dataset.tab === app.tab));
 	const vnBtn = $('#btnPlayVN');
-	if (vnBtn) vnBtn.innerHTML = app.playingVN ? '<span class="ico-txt">■</span><span class="btn-label">Stop</span>' : '<span class="ico-txt">▶</span><span class="btn-label">Play VN</span>';
+	if (vnBtn) vnBtn.innerHTML = app.playingVN ? '<span class="ico-txt">■</span><span class="btn-label">Stop story</span>' : '<span class="ico-txt">▶</span><span class="btn-label">Play story</span>';
 	const cleanBtn = $('[data-act="clean-toggle"]');
 	if (cleanBtn) cleanBtn.innerHTML = app.clean ? '<span class="ico-txt">👁</span><span class="btn-label">Show UI</span>' : '<span class="ico-txt">🎥</span><span class="btn-label">Clean UI</span>';
 	const camBtn = $('[data-act="cam-play"]');
 	if (camBtn && camBtn.closest('#topbar')) camBtn.innerHTML = app.cam.playing ? '<span class="ico-txt">■</span><span class="btn-label">Stop</span>' : '<span class="ico-txt">🎬</span><span class="btn-label">Camera</span>';
+	const pov = $('#topbar [data-act="game-open"]');
+	if (pov) pov.classList.toggle('on', !!app.game);
+	document.body.dataset.tab = app.tab;
 }
 
 function renderTimeline() {
@@ -1460,6 +1742,7 @@ function startVN(index = 0) {
 	const P = app.project;
 	const lines = P.dialogue.lines;
 	if (!lines.length) return toast('Add dialogue lines first', 'warn');
+	if (app.game) exitGame();
 	if (app.cam.playing) stopCamera(true);
 	app.vn.savedView = app.studio.view();
 	app.vn.index = Math.max(0, Math.min(index, lines.length - 1));
@@ -1635,7 +1918,7 @@ function updateGuides() {
 	const guides = $('#guides');
 	const frame = $('#guideFrame');
 	if (!guides || !frame) return;
-	const show = !!app.project?.camera?.guides && app.tab === 'camera' && !app.clean && !app.playingVN && !app.cam.playing;
+	const show = !!app.project?.camera?.guides && app.tab === 'camera' && !app.clean && !app.playingVN && !app.cam.playing && !app.game;
 	guides.style.display = show ? 'block' : 'none';
 	if (!show) return;
 	const vp = $('#viewport').getBoundingClientRect();
@@ -1654,6 +1937,8 @@ function updateGuides() {
    Actions
 --------------------------------------------------------------------------- */
 function setTab(tab) {
+	if (app.game) exitGame();
+	if (!TABS.some(([id]) => id === tab)) return;
 	if (app.tab === tab) return;
 	if (app.cam.playing) stopCamera(true);
 	app.tab = tab;
@@ -1779,7 +2064,7 @@ function scatterProps() {
 function applyPreset(id) {
 	const preset = PRESETS.find((p) => p.id === id);
 	if (!preset) return;
-	app.project.environment = { ...app.project.environment, ...preset.env, preset: id };
+	app.project.environment = { ...app.project.environment, ...preset.env, preset: id, time: null };
 	app.studio.setEnvironment(app.project.environment, app.project);
 	commit();
 	renderPanel();
@@ -1835,23 +2120,48 @@ function deleteTexture(id) {
 }
 
 function importTextureFile(file, input) {
-	if (!file) return;
+	if (!file) return false;
+	if (!String(file.type || '').startsWith('image/')) {
+		toast('That file is not an image', 'err');
+		if (input) input.value = '';
+		return false;
+	}
 	if (file.size > 3.5 * 1024 * 1024) {
 		toast('Image is larger than 3.5 MB', 'err');
 		if (input) input.value = '';
-		return;
+		return false;
 	}
 	const reader = new FileReader();
 	reader.onload = () => {
 		const tex = newTexture('image', { name: file.name.replace(/\.[^.]+$/, '').slice(0, 24), type: 'image', dataUrl: reader.result, scale: 1 });
 		app.project.textures.push(tex);
 		app.selectedTex = tex.id;
+		const prop = selectedItem();
+		let applied = null;
+		if (prop && itemKind(app.project, prop.id) === 'prop') {
+			prop.textureId = tex.id;
+			app.studio.rebuildItem(app.project, prop, 'prop');
+			applied = prop;
+		}
 		commit();
-		renderPanel();
-		toast(`Imported “${tex.name}”`);
+		if (app.tab === 'textures') renderPanel();
+		else setTab('textures');
+		toast(applied ? `Imported “${tex.name}” and applied it to ${applied.name}` : `Imported “${tex.name}”`);
 	};
 	reader.readAsDataURL(file);
 	if (input) input.value = '';
+	return true;
+}
+
+function importTextureFiles(files, input) {
+	const list = [...(files || [])].filter((f) => String(f.type || '').startsWith('image/')).slice(0, 8);
+	if (!list.length) {
+		if (input) input.value = '';
+		return;
+	}
+	list.forEach((f) => importTextureFile(f));
+	if (input) input.value = '';
+	if (list.length > 1) setTimeout(() => toast(`${list.length} textures imported`), 80);
 }
 
 function addLine() {
@@ -1884,6 +2194,164 @@ function moveLine(id, dir) {
 	renderPanel();
 }
 
+/* ---------------------------------------------------------------------------
+   World, camera moves & POV game mode
+--------------------------------------------------------------------------- */
+function applyTimeOfDay(id) {
+	const t = TIMES.find((x) => x.id === id);
+	if (!t) return;
+	const env = app.project.environment;
+	Object.assign(env, {
+		time: t.id,
+		skyTop: t.skyTop,
+		skyBottom: t.skyBottom,
+		sunColor: t.sunColor,
+		sunElevation: t.sunElevation,
+		sun: t.sun,
+		ambient: t.ambient,
+		fog: t.fog,
+	});
+	app.studio.setEnvironment(env, app.project);
+	commit();
+	renderPanel();
+	toast(`${t.emoji} ${t.label} light`);
+}
+
+function addCameraMove(kind) {
+	const P = app.project;
+	const cam = P.camera;
+	const st = app.studio;
+	if (app.cam.playing) stopCamera(true);
+	if (!cam.keyframes.length) {
+		app.cam.time = 0;
+		captureKeyframe();
+	}
+	const lastT = Math.max(...cam.keyframes.map((k) => k.t), 0);
+	if (lastT + 0.25 >= cam.duration) cam.duration = Math.min(180, Math.round((lastT + 3) * 10) / 10);
+	const t = Math.min(cam.duration, lastT + 2);
+	const target = st.controls.target.clone();
+	const pos = st.camera.position.clone();
+	if (kind === 'orbit') {
+		const off = pos.clone().sub(target);
+		off.applyAxisAngle(new THREE.Vector3(0, 1, 0), D2R(38));
+		pos.copy(target).add(off);
+	} else if (kind === 'push') {
+		pos.lerp(target, 0.32);
+	} else if (kind === 'crane') {
+		pos.y += 1.8;
+		pos.z += 0.5;
+	} else if (kind === 'pan') {
+		const right = new THREE.Vector3().crossVectors(new THREE.Vector3(0, 1, 0), pos.clone().sub(target)).normalize();
+		target.addScaledVector(right, -1.3);
+		pos.addScaledVector(right, -1.3);
+	}
+	st.camera.position.copy(pos);
+	st.camera.lookAt(target);
+	st.controls.target.copy(target);
+	app.cam.time = t;
+	captureKeyframe();
+	const labels = { orbit: 'Orbit', push: 'Push in', crane: 'Crane up', pan: 'Pan' };
+	toast(`${labels[kind] || 'Camera'} move added at ${r2(t)}s`);
+}
+
+function persistGame() {
+	app.project.game = {
+		...(app.project.game || {}),
+		actorId: app.playActorId,
+		thirdPerson: !!app.playThird,
+		pad: !!app.gamepad,
+	};
+	markDirty();
+}
+
+function updateGamePrompt(text) {
+	const el = $('#gamePrompt');
+	if (!el) return;
+	el.hidden = !text;
+	el.textContent = text || '';
+	const cross = $('#gameCross');
+	if (cross) cross.classList.toggle('aim', !!text);
+}
+
+function updateGameHud() {
+	const hud = $('#gameHud');
+	const pad = $('#gamePad');
+	if (!hud || !pad) return;
+	const g = app.game;
+	if (!g) {
+		hud.hidden = true;
+		pad.hidden = true;
+		document.body.classList.remove('game', 'no-pad');
+		return;
+	}
+	hud.hidden = false;
+	const name = $('#ghName');
+	if (name) name.textContent = g.actor.name;
+	const mode = $('#ghMode');
+	if (mode) mode.textContent = g.thirdPerson ? '3RD' : 'POV';
+	const view = $('#ghView');
+	if (view) view.textContent = g.thirdPerson ? '3rd' : '1st';
+	const padLabel = $('#ghPad');
+	if (padLabel) padLabel.textContent = app.gamepad ? 'Pad' : 'Off';
+	pad.hidden = !app.gamepad;
+	document.body.classList.toggle('no-pad', !app.gamepad);
+	$('#gpRun')?.classList.toggle('on', !!g.run);
+	const grab = $('#gpGrab');
+	if (grab) {
+		grab.classList.toggle('on', !!g.holding);
+		const small = grab.querySelector('small');
+		if (small) small.textContent = g.holding ? 'Drop' : 'Grab';
+	}
+}
+
+function startGame(actorId) {
+	if (app.game) return;
+	const P = app.project;
+	const actor = characterById(P, actorId || app.playActorId || P.characters[0]?.id);
+	if (!actor) {
+		toast('Create an actor first — you play as them', 'warn');
+		setTab('characters');
+		return;
+	}
+	if (app.playingVN) endVN();
+	if (app.cam.playing) stopCamera(true);
+	if (app.clean) setClean(false, true);
+	app.playActorId = actor.id;
+	const game = new GameMode(app.studio, {
+		project: P,
+		actor,
+		thirdPerson: !!app.playThird,
+		onPrompt: updateGamePrompt,
+		onState: updateGameHud,
+		onExit: () => exitGame(),
+		onToast: (msg) => toast(msg, 'warn'),
+		onDrop: () => commit(),
+	});
+	if (!game.start()) {
+		toast('That actor could not be placed in the scene', 'err');
+		return;
+	}
+	app.game = game;
+	document.body.classList.add('game');
+	updateGameHud();
+	updateGamePrompt('');
+	persistGame();
+	toast(`You are ${actor.name} — WASD to move, E to grab, Esc to leave`);
+}
+
+function exitGame() {
+	if (!app.game) return;
+	const game = app.game;
+	app.game = null;
+	game.stop();
+	updateGameHud();
+	updateGamePrompt('');
+	document.body.classList.remove('game', 'no-pad');
+	persistGame();
+	renderAll();
+	toast('Left POV');
+}
+
 function handleAction(act, btn) {
 	const P = app.project;
 	const studio = app.studio;
@@ -1902,6 +2370,7 @@ function handleAction(act, btn) {
 			if (!window.confirm(`Start a ${demo ? 'demo' : 'new blank'} project? The current project is replaced (a copy is autosaved until you edit).`)) break;
 			clearProject();
 			app.project = demo ? defaultProject() : blankProject();
+			syncGamePrefs();
 			app.selection = null;
 			app.selectedKf = null;
 			app.selectedTex = null;
@@ -1938,6 +2407,7 @@ function handleAction(act, btn) {
 			break;
 		}
 		case 'help':
+		case 'guide':
 			openHelp();
 			break;
 		case 'fullscreen':
@@ -1958,6 +2428,12 @@ function handleAction(act, btn) {
 			break;
 		case 'cam-stop':
 			stopCamera(true);
+			break;
+		case 'cam-move':
+			addCameraMove(btn.dataset.value || 'orbit');
+			break;
+		case 'time-of-day':
+			applyTimeOfDay(btn.dataset.value);
 			break;
 		case 'cam-loop':
 			P.camera.loop = !P.camera.loop;
@@ -2050,11 +2526,24 @@ function handleAction(act, btn) {
 			renderPanel();
 			break;
 		}
+		case 'char-color':
+		case 'char-style': {
+			const c = characterById(P, btn.dataset.id || app.selection);
+			if (!c) break;
+			const path = btn.dataset.path;
+			if (!path) break;
+			setPath(c, path, btn.dataset.value);
+			app.studio.rebuildItem(P, c, 'char');
+			commit();
+			renderPanel();
+			break;
+		}
 		case 'char-randomize': {
 			const c = characterById(P, btn.dataset.id || app.selection);
 			if (!c) break;
 			const pick = (list) => list[Math.floor(Math.random() * list.length)];
 			c.skin = pick(SKIN_TONES);
+			c.eyeColor = pick(EYE_COLORS);
 			c.hairColor = pick(HAIR_COLORS);
 			c.hairStyle = pick(HAIR_STYLES)[0];
 			c.topStyle = pick(TOP_STYLES)[0];
@@ -2208,6 +2697,54 @@ function handleAction(act, btn) {
 			renderAll();
 			break;
 		}
+		case 'play-actor':
+			app.playActorId = btn.dataset.id || null;
+			persistGame();
+			renderPanel();
+			break;
+		case 'play-view':
+			app.playThird = (btn.dataset.value || 'first') === 'third';
+			if (app.game) app.game.setView(app.playThird);
+			persistGame();
+			renderPanel();
+			break;
+		case 'play-pad':
+			app.gamepad = !app.gamepad;
+			persistGame();
+			updateGameHud();
+			renderPanel();
+			break;
+		case 'game-open':
+			if (app.game) exitGame();
+			else {
+				const pick = app.selection && itemKind(P, app.selection) === 'char' ? app.selection : app.playActorId;
+				startGame(pick || P.characters[0]?.id);
+			}
+			break;
+		case 'game-start':
+			startGame(btn.dataset.id || app.playActorId);
+			break;
+		case 'game-exit':
+			exitGame();
+			break;
+		case 'game-grab':
+			app.game?.grab();
+			break;
+		case 'game-jump':
+			app.game?.jump();
+			break;
+		case 'game-run':
+			if (app.game) app.game.setRun(!app.game.run);
+			break;
+		case 'game-view':
+			if (app.game) app.game.setView(!app.game.thirdPerson);
+			updateGameHud();
+			break;
+		case 'game-pad':
+			app.gamepad = !app.gamepad;
+			persistGame();
+			updateGameHud();
+			break;
 		case 'help-close':
 			$('#modalRoot').hidden = true;
 			$('#modalRoot').innerHTML = '';
@@ -2273,20 +2810,33 @@ function openHelp() {
 	root.hidden = false;
 	root.innerHTML = `<div class="modal" role="dialog" aria-modal="true">
 		<h2>Low Poly Studio</h2>
-		<p>Build low poly characters, sets and props, stage a visual-novel conversation, animate the camera, then hide the UI and screen-record a clean shot.</p>
-		<h3>Workflow</h3>
+		<p>Everything is on the left rail: <b>Home · Actors · World · Props · Textures · Arrange · Story · Camera · Play</b>.
+		The top bar always has <b>Play story</b>, <b>Camera</b> and <b>POV</b>, so you never have to hunt for them.</p>
+
+		<h3>Five steps to a film</h3>
 		<ul>
-			<li><b>1 · Characters</b> — pick an actor, tune body, hair, outfit, face and pose.</li>
-			<li><b>2 · Scene</b> — choose an environment preset, then tune sky, sun, fog and particles.</li>
-			<li><b>3 · Props</b> — add objects from the library; colour, texture and transform them with the gizmo.</li>
-			<li><b>4 · Textures</b> — generate procedural materials or import an image and apply it.</li>
-			<li><b>5 · Scene Edit</b> — inspect every layer, hide or lock objects, and tweak transforms.</li>
-			<li><b>6 · Dialogue</b> — write lines, pick a speaker, expression and camera shot.</li>
-			<li><b>7 · Camera</b> — capture keyframes (position, rotation, FOV, easing), preview and loop.</li>
-			<li><b>8 · Record</b> — press <b>Clean UI</b> (<kbd>H</kbd>) for a pure 3D view, or play the VN / camera and record.</li>
+			<li><b>1 · Actors</b> — pick an actor and design their face, eye colour, hair, outfit, accessory and pose.</li>
+			<li><b>2 · World</b> — choose a preset card, tap a time of day, drag the sun, then scatter trees or rocks.</li>
+			<li><b>3 · Story</b> — write a line per beat; choose speaker, expression and camera shot. Press <b>Play story</b>.</li>
+			<li><b>4 · Camera</b> — use a <b>Quick move</b> (orbit / push in / crane / pan) or capture keyframes, then play the timeline.</li>
+			<li><b>5 · Play</b> — take the POV of any actor, walk around, pick props up, or hide the UI and screen-record.</li>
 		</ul>
+
+		<h3>Textures</h3>
+		<p>Open <b>Textures</b> and drop an image on the panel, paste one with <kbd>Ctrl</kbd>+<kbd>V</kbd>, or click <b>Import</b>.
+		If a prop is selected, the imported texture is applied to it immediately. You can also generate 16 procedural patterns,
+		then fine-tune colour, scale and repeat.</p>
+
+		<h3>POV / game mode</h3>
+		<p>Press <b>G</b> (or <b>POV</b> in the top bar) to become the selected actor. On a phone use the on-screen
+		<b>move stick</b>, <b>look pad</b>, <b>Jump</b>, <b>Grab</b>, <b>Run</b> and <b>View</b> buttons. On desktop: mouse look,
+		<kbd>WASD</kbd>, <kbd>Shift</kbd> to run, <kbd>Space</kbd> to jump, <kbd>E</kbd> to grab / drop a prop, <kbd>F</kbd> for
+		first / third person and <kbd>Esc</kbd> to leave. Big props (buildings, big trees) are too heavy to lift.</p>
+
 		<h3>Shortcuts</h3>
 		<div class="kbd-grid">
+			<div><span>Home / tools</span><span><kbd>1</kbd>…<kbd>9</kbd></span></div>
+			<div><span>POV game mode</span><span><kbd>G</kbd></span></div>
 			<div><span>Hide / show UI</span><span><kbd>H</kbd></span></div>
 			<div><span>Play visual novel</span><span><kbd>P</kbd></span></div>
 			<div><span>Play camera sequence</span><span><kbd>C</kbd></span></div>
@@ -2297,8 +2847,10 @@ function openHelp() {
 			<div><span>Next VN line</span><span><kbd>Space</kbd></span></div>
 			<div><span>Cancel / exit</span><span><kbd>Esc</kbd></span></div>
 		</div>
+
 		<h3>Recording &amp; mobile</h3>
-		<p>Use your browser or OS screen recorder while in Clean UI mode. On a phone, build the APK with the included workflow: <code>npm run apk</code> or the GitHub Actions “Build Android APK” workflow. See <code>docs/BUILD_APK.md</code>.</p>
+		<p>Use a screen recorder while in Clean UI or POV. On a phone, build the APK with the included workflow:
+		<code>npm run apk</code> or the GitHub Actions “Build Android APK” workflow. See <code>docs/BUILD_APK.md</code>.</p>
 		<p>Projects autosave to this device. Use the ⋯ menu to save a <code>.json</code> file, load one back, or grab a PNG screenshot.</p>
 		<div class="modal-close"><button class="btn primary" data-act="help-close">Got it</button></div>
 	</div>`;
@@ -2345,7 +2897,7 @@ function bindGlobalUI() {
 	document.addEventListener('change', (e) => {
 		if (!e.target.closest('#panel')) return;
 		if (e.target.id === 'texImport') {
-			importTextureFile(e.target.files?.[0], e.target);
+			importTextureFiles(e.target.files, e.target);
 			return;
 		}
 		if (e.target.id === 'texScale') {
@@ -2382,6 +2934,7 @@ function bindGlobalUI() {
 			try {
 				const data = JSON.parse(reader.result);
 				app.project = normalizeProject(data);
+				syncGamePrefs();
 				app.selection = null;
 				app.selectedKf = null;
 				app.selectedTex = null;
@@ -2417,6 +2970,7 @@ function bindGlobalUI() {
 	});
 
 	document.addEventListener('keydown', (e) => {
+		if (app.game) return; // GameMode owns the keyboard while walking
 		const tag = (e.target?.tagName || '').toLowerCase();
 		const typing = ['input', 'textarea', 'select'].includes(tag) || e.target?.isContentEditable;
 		const key = e.key.toLowerCase();
@@ -2467,7 +3021,10 @@ function bindGlobalUI() {
 		if (e.ctrlKey || e.metaKey || e.altKey) return;
 
 		if (key === 'h') setClean(!app.clean);
-		else if (key === 'p') {
+		else if (key === 'g') {
+			if (app.game) exitGame();
+			else startGame(app.selection && itemKind(app.project, app.selection) === 'char' ? app.selection : app.playActorId);
+		} else if (key === 'p') {
 			if (app.playingVN) endVN();
 			else startVN(0);
 		} else if (key === 'c') {
@@ -2488,11 +3045,173 @@ function bindGlobalUI() {
 				e.preventDefault();
 				deleteItem(app.selection);
 			}
-		} else if (/^[1-7]$/.test(key)) {
-			const tabs = ['characters', 'scene', 'props', 'textures', 'objects', 'dialogue', 'camera'];
-			setTab(tabs[Number(key) - 1]);
+		} else if (/^[1-9]$/.test(key)) {
+			setTab(TABS[Number(key) - 1]?.[0]);
 		}
 	});
+
+	/* ---------------------------- texture drops --------------------------- */
+	const imageFileFrom = (dt) => {
+		if (!dt) return null;
+		for (const item of dt.items || []) {
+			if (item.kind === 'file' && String(item.type).startsWith('image/')) return item.getAsFile();
+		}
+		for (const f of dt.files || []) if (String(f.type).startsWith('image/')) return f;
+		return null;
+	};
+	document.addEventListener('dragover', (e) => {
+		if (!app.project || !e.dataTransfer) return;
+		const types = [...(e.dataTransfer.types || [])];
+		if (!types.includes('Files')) return;
+		e.preventDefault();
+		document.body.classList.add('dragging');
+	});
+	document.addEventListener('dragleave', (e) => {
+		if (!e.relatedTarget) document.body.classList.remove('dragging');
+	});
+	document.addEventListener('drop', (e) => {
+		const file = imageFileFrom(e.dataTransfer);
+		document.body.classList.remove('dragging');
+		if (!file) return;
+		e.preventDefault();
+		if (app.game) exitGame();
+		if (importTextureFile(file)) setTab('textures');
+	});
+	document.addEventListener('paste', (e) => {
+		if (!app.project || app.game) return;
+		const items = [...(e.clipboardData?.items || [])];
+		const file = items.find((i) => String(i.type).startsWith('image/'))?.getAsFile();
+		if (!file) return;
+		e.preventDefault();
+		if (importTextureFile(file)) setTab('textures');
+	});
+
+	/* ------------------------------- sun pad ------------------------------ */
+	let sunPointer = null;
+	let sunRect = null;
+	const paintSun = (e) => {
+		if (!sunRect) return;
+		const env = app.project.environment;
+		const cx = sunRect.left + sunRect.width / 2;
+		const cy = sunRect.top + sunRect.height / 2;
+		const dx = e.clientX - cx;
+		const dy = e.clientY - cy;
+		const max = Math.max(10, sunRect.width / 2 - 4);
+		const dist = Math.min(max, Math.hypot(dx, dy));
+		const elev = Math.round(clamp(90 - (dist / max) * 88, 2, 88));
+		const az = Math.round((R2D(Math.atan2(dy, dx)) % 360 + 360) % 360);
+		env.sunElevation = elev;
+		env.sunAzimuth = az;
+		env.time = null;
+		app.studio.updateLighting(env);
+		const rho = 46 - (elev / 90) * 40;
+		const dot = $('#sunDot');
+		if (dot) {
+			dot.style.left = `${58 + Math.cos(D2R(az)) * rho}px`;
+			dot.style.top = `${58 + Math.sin(D2R(az)) * rho}px`;
+		}
+		for (const [path, value, unit] of [
+			['environment.sunElevation', elev, '°'],
+			['environment.sunAzimuth', az, '°'],
+		]) {
+			const el = panel().querySelector(`[data-path="${path}"]`);
+			if (el) {
+				el.value = value;
+				const out = el.parentElement?.querySelector('output');
+				if (out) out.textContent = `${value}${unit}`;
+			}
+		}
+	};
+	document.addEventListener(
+		'pointerdown',
+		(e) => {
+			const pad = e.target.closest?.('#sunPad');
+			if (!pad) return;
+			sunPointer = e.pointerId;
+			sunRect = pad.getBoundingClientRect();
+			pad.setPointerCapture?.(e.pointerId);
+			paintSun(e);
+		},
+		true
+	);
+	document.addEventListener(
+		'pointermove',
+		(e) => {
+			if (sunPointer === null || e.pointerId !== sunPointer) return;
+			paintSun(e);
+		},
+		true
+	);
+	const endSun = (e) => {
+		if (sunPointer === null || e.pointerId !== sunPointer) return;
+		sunPointer = null;
+		sunRect = null;
+		commit();
+		renderPanel();
+	};
+	document.addEventListener('pointerup', endSun, true);
+	document.addEventListener('pointercancel', endSun, true);
+
+	/* ---------------------------- on-screen pad --------------------------- */
+	const stick = $('#gpStick');
+	const sticker = $('#gpThumb');
+	let stickId = null;
+	let stickRect = null;
+	const stickMove = (e) => {
+		if (!stickRect) return;
+		const x = clamp((e.clientX - (stickRect.left + stickRect.width / 2)) / (stickRect.width / 2), -1, 1);
+		const y = clamp((e.clientY - (stickRect.top + stickRect.height / 2)) / (stickRect.height / 2), -1, 1);
+		app.game?.setMove(x, y);
+		if (sticker) sticker.style.transform = `translate(${x * 26}px, ${y * 26}px)`;
+	};
+	stick?.addEventListener('pointerdown', (e) => {
+		if (!app.game) return;
+		e.preventDefault();
+		stickId = e.pointerId;
+		stickRect = stick.getBoundingClientRect();
+		stick.setPointerCapture?.(e.pointerId);
+		stickMove(e);
+	});
+	const stickEnd = (e) => {
+		if (stickId === null || e.pointerId !== stickId) return;
+		stickId = null;
+		stickRect = null;
+		app.game?.setMove(0, 0);
+		if (sticker) sticker.style.transform = '';
+	};
+	document.addEventListener('pointermove', (e) => {
+		if (stickId !== null && e.pointerId === stickId) stickMove(e);
+	});
+	document.addEventListener('pointerup', stickEnd);
+	document.addEventListener('pointercancel', stickEnd);
+
+	const lookPad = $('#gpLook');
+	const lookThumb = $('#gpLookThumb');
+	let lookId = null;
+	let lookLast = null;
+	lookPad?.addEventListener('pointerdown', (e) => {
+		if (!app.game) return;
+		e.preventDefault();
+		lookId = e.pointerId;
+		lookLast = { x: e.clientX, y: e.clientY };
+		lookPad.setPointerCapture?.(e.pointerId);
+	});
+	document.addEventListener('pointermove', (e) => {
+		if (lookId === null || e.pointerId !== lookId || !lookLast) return;
+		const dx = e.clientX - lookLast.x;
+		const dy = e.clientY - lookLast.y;
+		lookLast = { x: e.clientX, y: e.clientY };
+		app.game?.look(dx, dy, 2.2);
+		if (lookThumb) lookThumb.style.transform = `translate(${clamp(dx * 1.4, -20, 20)}px, ${clamp(dy * 1.4, -20, 20)}px)`;
+	});
+	const lookEnd = (e) => {
+		if (lookId === null || e.pointerId !== lookId) return;
+		lookId = null;
+		lookLast = null;
+		if (lookThumb) lookThumb.style.transform = '';
+	};
+	document.addEventListener('pointerup', lookEnd);
+	document.addEventListener('pointercancel', lookEnd);
 
 	// long press anywhere to restore the UI in clean mode
 	let pressTimer = null;
@@ -2531,7 +3250,7 @@ function bindGlobalUI() {
 	window.addEventListener('resize', updateGuides);
 	window.addEventListener('beforeunload', () => {
 		if (app.project) {
-			app.project.view = app.studio?.view?.() || app.project.view;
+			app.project.view = app.game?.saved?.view || app.studio?.view?.() || app.project.view;
 			saveProject(app.project);
 		}
 	});
@@ -2581,6 +3300,12 @@ export const __internals = {
 	addLine,
 	normalizeProject,
 	bindGlobalUI,
+	startGame,
+	exitGame,
+	applyTimeOfDay,
+	addCameraMove,
+	importTextureFile,
+	GameMode,
 };
 
 if (!(typeof window !== 'undefined' && window.__LPS_NO_AUTOBOOT)) {

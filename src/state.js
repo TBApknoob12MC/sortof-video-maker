@@ -37,6 +37,7 @@ export function newCharacter(partial = {}) {
 		id: uid('char'),
 		name: 'New Actor',
 		skin: SKIN_TONES[0],
+		eyeColor: '#2b2118',
 		hairColor: HAIR_COLORS[0],
 		hairStyle: 'short',
 		topColor: CLOTH_COLORS[5],
@@ -189,6 +190,7 @@ export function defaultProject() {
 			groundColor: '#e8c48b',
 			groundSize: 60,
 			fog: 0.014,
+			time: 'golden',
 			sun: 1.65,
 			sunColor: '#ffd9a8',
 			sunAzimuth: 130,
@@ -233,6 +235,7 @@ export function defaultProject() {
 			],
 		},
 		view: { p: [3.6, 2.0, 5.2], target: [0, 1.05, 0], fov: 45 },
+		game: { actorId: null, thirdPerson: false, pad: true },
 	};
 }
 
@@ -251,6 +254,7 @@ export function blankProject() {
 		skyBottom: '#e6ebf2',
 		groundColor: '#8e96a5',
 		fog: 0,
+		time: 'noon',
 		sun: 1.35,
 		sunColor: '#ffffff',
 		sunAzimuth: 120,

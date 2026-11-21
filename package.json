@@ -1,7 +1,7 @@
 {
   "name": "lowpoly-studio",
-  "version": "1.0.0",
-  "description": "Low Poly Studio — 3D character/scene/prop creator, visual novel dialogue and keyframed camera, buildable as an APK.",
+  "version": "1.1.0",
+  "description": "Low Poly Studio — 3D character/scene/prop creator, visual-novel dialogue, keyframed camera and first-person POV game mode with an on-screen gamepad, buildable as an APK.",
   "scripts": {
     "dev": "node scripts/dev-server.mjs",
     "start": "node scripts/dev-server.mjs",
@@ -25,7 +25,11 @@
     "scene-editor",
     "android",
     "apk",
-    "capacitor"
+    "capacitor",
+    "game-mode",
+    "pov",
+    "fps",
+    "gamepad"
   ],
   "author": "",
   "license": "MIT",

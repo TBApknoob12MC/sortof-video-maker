@@ -88,6 +88,7 @@ export class Studio {
 		this.stars = null;
 		this.anims = [];
 		this.camTween = null;
+		this.onFrame = null;
 		this.selectionDirty = true;
 		this.pickEnabled = true;
 		this.phase = new Map();
@@ -654,6 +655,7 @@ export class Studio {
 		const dt = Math.min(0.05, this.clock.getDelta());
 		const t = this.clock.elapsedTime;
 
+		if (this.onFrame) this.onFrame(dt, t);
 		if (!this.locked && !this.camTween) this.controls.update();
 
 		if (this.camTween) {
