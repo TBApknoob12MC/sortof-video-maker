@@ -1,0 +1,52 @@
+{
+  "name": "lowpoly-studio",
+  "version": "1.0.0",
+  "description": "Low Poly Studio — 3D character/scene/prop creator, visual novel dialogue and keyframed camera, buildable as an APK.",
+  "scripts": {
+    "dev": "node scripts/dev-server.mjs",
+    "start": "node scripts/dev-server.mjs",
+    "preview": "node scripts/prepare-www.mjs && node scripts/dev-server.mjs www 4173",
+    "www": "node scripts/prepare-www.mjs",
+    "test": "node scripts/selftest.mjs && node scripts/studio-test.mjs && node scripts/boot-test.mjs",
+    "cap:sync": "npm run www && cap sync android",
+    "android": "npm run www && cap open android",
+    "apk": "node scripts/build-apk.mjs",
+    "apk:release": "node scripts/build-apk.mjs --release"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TBApknoob12MC/sortof-video-maker.git"
+  },
+  "keywords": [
+    "threejs",
+    "low-poly",
+    "3d",
+    "visual-novel",
+    "scene-editor",
+    "android",
+    "apk",
+    "capacitor"
+  ],
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/TBApknoob12MC/sortof-video-maker/issues"
+  },
+  "homepage": "https://github.com/TBApknoob12MC/sortof-video-maker#readme",
+  "dependencies": {
+    "@capacitor/android": "^7.6.10",
+    "@capacitor/core": "^7.6.10",
+    "@capacitor/filesystem": "^7.1.9",
+    "@capacitor/share": "^7.0.4",
+    "three": "^0.169.0"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^7.6.10",
+    "jsdom": "^31.0.1"
+  },
+  "type": "module",
+  "private": true,
+  "engines": {
+    "node": ">=20"
+  }
+}

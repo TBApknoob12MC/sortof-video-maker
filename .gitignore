@@ -1,0 +1,19 @@
+# dependencies
+node_modules/
+
+# generated web bundle for Capacitor
+www/
+
+# generated native project (created by `npx cap add android`)
+android/
+ios/
+
+# build output
+dist/
+
+# local tooling
+.DS_Store
+*.log
+.env
+.idea/
+.vscode/
